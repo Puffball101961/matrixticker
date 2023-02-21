@@ -40,7 +40,7 @@ Preface: Before you even consider making this you should have at least a basic k
 - 10: Connect all spade connectors to the screw terminals on the PSU. BE CAREFUL!! Ensure you connect the wires to their correct terminals to avoid the MAGIC SMOKE!
 - 11: Connect the 2 panels together using the provided ribbon cable, then connect the panel closest to the pi to the HAT, or directly wire it to the Pi.
 - 12: Flash the micro sd card with raspberry pi os lite. I recommend using Raspberry Pi Imager as you can easily set up WiFi and SSH configs.
-- 13: Clone this repo and run the code.
+- 13: Clone this repo, install the rgb matrix module (Use Hzeller's rgb matrix repo) and run the code.
 - 14: Hope it works.
 
 Hzeller's repository for driving RGB Matrix Panels is very helpful for troubleshooting your build. Make sure to check it out if you are having issues.
