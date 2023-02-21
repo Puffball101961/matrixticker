@@ -28,20 +28,20 @@ I am planning to refine the process when I have time to work on it.
 
 ## Brief Assembly Guide
 Preface: Before you even consider making this you should have at least a basic knowledge of electronics and using raspberry pis.
-1: 3D Print/ Fabricate the case and assemble.
-2: Solder spade connectors to the fan wires.
-3: Remove the Type A end from the micro usb cable (the end that doesnt plug into the Pi) and solder spade connectors.
-4: If your Matrix Panel power cables don't have spade connectors, solder them on.
-5: Install the panels into the front of the case, and screw them in. Ensure that the arrows on the back of the panels are pointing right (looking from the back)
-6: Install Fans, I recommend having the fan near the Pi as an intake and the other fan as an exhaust.
-7: If using a PWM fan controller, wire it to the PSU and fans.
-8: Screw the Pi into the raised portions of the back of the case, and attach the Matrix Controller HAT (if using one)
-9: Install the Power Connector into the left side, it should click in. If it doesn't click in try filing the ridges of the case down a touch.
-10: Connect all spade connectors to the screw terminals on the PSU. BE CAREFUL!! Ensure you connect the wires to their correct terminals to avoid the MAGIC SMOKE!
-11: Connect the 2 panels together using the provided ribbon cable, then connect the panel closest to the pi to the HAT, or directly wire it to the Pi.
-12: Flash the micro sd card with raspberry pi os lite. I recommend using Raspberry Pi Imager as you can easily set up WiFi and SSH configs.
-13: Clone this repo and run the code.
-14: Hope it works.
+- 1: 3D Print/ Fabricate the case and assemble.
+- 2: Solder spade connectors to the fan wires.
+- 3: Remove the Type A end from the micro usb cable (the end that doesnt plug into the Pi) and solder spade connectors.
+- 4: If your Matrix Panel power cables don't have spade connectors, solder them on.
+- 5: Install the panels into the front of the case, and screw them in. Ensure that the arrows on the back of the panels are pointing right (looking from the back)
+- 6: Install Fans, I recommend having the fan near the Pi as an intake and the other fan as an exhaust.
+- 7: If using a PWM fan controller, wire it to the PSU and fans.
+- 8: Screw the Pi into the raised portions of the back of the case, and attach the Matrix Controller HAT (if using one)
+- 9: Install the Power Connector into the left side, it should click in. If it doesn't click in try filing the ridges of the case down a touch.
+- 10: Connect all spade connectors to the screw terminals on the PSU. BE CAREFUL!! Ensure you connect the wires to their correct terminals to avoid the MAGIC SMOKE!
+- 11: Connect the 2 panels together using the provided ribbon cable, then connect the panel closest to the pi to the HAT, or directly wire it to the Pi.
+- 12: Flash the micro sd card with raspberry pi os lite. I recommend using Raspberry Pi Imager as you can easily set up WiFi and SSH configs.
+- 13: Clone this repo and run the code.
+- 14: Hope it works.
 
 Hzeller's repository for driving RGB Matrix Panels is very helpful for troubleshooting your build. Make sure to check it out if you are having issues.
 If you can't find the solution to the problem you are having open an issue and I'll try my best to help you out.
@@ -50,5 +50,5 @@ If you can't find the solution to the problem you are having open an issue and I
 I will be welcoming improvements and extra features to the code. Open a PR with your proposed changes and I will have a look.
 
 ## License
-This Open Source software is distributed under the GNU GPLv3 license. You may modify this code however you like, and distribute it. Source code must be made available if you are distributing. You are not allowed to create closed source software based on this code. More info can be found at this website: https://choosealicense.com/licenses/gpl-3.0/
+This Open Source software is distributed under the GNU GPLv3 license. It is distributed with no Warranty and I incur no Liability from your use of this software. You may modify this code however you like, and distribute it. Source code must be made available if you are distributing. You are not allowed to create closed source software based on this code. More info can be found at this website: https://choosealicense.com/licenses/gpl-3.0/
 
