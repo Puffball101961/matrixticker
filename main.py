@@ -11,30 +11,11 @@ from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 from PIL import Image, ImageFont, ImageDraw, ImageOps, ImageFilter
 
 
-cryptos = [
-    'btc',
-    'ltc',
-    'eth',
-    'matic',
-    'near',
-    'xrp',
-    'xtz',
-    'sol',
-    'icp'
-]
-
 stocks = [
     'aapl',
     'amzn',
     'goog',
     'msft'
-]
-
-commodities = [
-    'gold',
-    'silver',
-    'copper',
-    'crudeoil'
 ]
 
 cryptoIdBindings = { # Coingecko API ID bindings
@@ -210,11 +191,11 @@ async def fetchPrices(cryptoToFetch, comsToFetch):
 while True:
     if priceCheckIncrement >= priceCheckThreshold:
         cryptoToFetch = []
-        for item in cryptos:
+        for item in cryptoIdBindings:
             cryptoToFetch.append(cryptoIdBindings[item])
 
         comsToFetch = []
-        for item in commodities:
+        for item in commoditiesIdBindings:
             comsToFetch.append(commoditiesIdBindings[item])
 
         prices = asyncio.run(fetchPrices(cryptoToFetch, comsToFetch))        
@@ -222,7 +203,7 @@ while True:
         priceCheckIncrement = 0
     priceCheckIncrement += 1
 
-    for item in cryptos:
+    for item in cryptoIdBindings:
         if prices != {}:
             showPrice('crypto', item, prices[cryptoIdBindings[item]]['aud'], prices[cryptoIdBindings[item]]['aud_24h_change'])
         else:
@@ -232,7 +213,7 @@ while True:
             showPrice('stock', item, prices[item.upper()]['usd'], prices[item.upper()]['market_change'])
         else:
             time.sleep(2)
-    for item in commodities:
+    for item in commoditiesIdBindings:
         if prices != {}:
             showPrice('commodity', item, prices[commoditiesIdBindings[item]]['usd'], prices[commoditiesIdBindings[item]]['market_change'])
         else:
