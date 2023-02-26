@@ -67,8 +67,8 @@ options = RGBMatrixOptions()
 options.rows = 32
 options.cols = 128
 options.parallel = 1
-options.hardware_mapping = 'adafruit-hat'  # If you have an Adafruit HAT: 'adafruit-hat'
-options.pixel_mapper_config = "Rotate:180"
+options.hardware_mapping = 'adafruit-hat-pwm'  # If you have an Adafruit HAT: 'adafruit-hat'
+#options.pixel_mapper_config = "Rotate:180"
 options.led_rgb_sequence = "RBG"
 
 matrix = RGBMatrix(options = options)
@@ -177,7 +177,7 @@ def showPrice(assetType, symbol, price, priceChange):
         tmp.paste(prevImage, (0,0))
 
         tmp2 = image.crop((0,0,0+i,32))
-        tmp.paste(tmp2, (128-i,0))
+        tmp.paste(tmp2, (127-i,0))
 
 
         matrix.SetImage(tmp.convert('RGB'))
