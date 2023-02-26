@@ -7,7 +7,7 @@ import asyncio
 import aiohttp
 import requests
 
-from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions, graphics
+from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 from PIL import Image, ImageFont, ImageDraw, ImageOps, ImageFilter
 
 
