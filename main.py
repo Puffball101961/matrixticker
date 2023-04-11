@@ -93,7 +93,7 @@ def genPrice(assetType, symbol, price, priceChange):
     image = Image.new('RGBA', (1000,32))
     draw = ImageDraw.Draw(image)
 
-    icon = Image.open(f"icons/{assetType}/{symbol}.png")
+    icon = Image.open(f"icons/{assetType}/{symbol.lower()}.png")
     image.paste(icon, (0,0))
 
     if type(price) == float:
@@ -199,7 +199,7 @@ def showPrice(prices):
 
         matrix.SetImage(tmp.convert('RGB'))
 
-        time.sleep(0.01)
+        time.sleep(0.025)
     
     lastImage = tmp
 
