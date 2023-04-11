@@ -7,6 +7,7 @@ import asyncio
 import aiohttp
 import requests
 
+#from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 from PIL import Image, ImageFont, ImageDraw, ImageOps, ImageFilter
 
@@ -23,25 +24,24 @@ cryptoIdBindings = { # Coingecko API ID bindings
     'ltc': 'litecoin',
     'eth': 'ethereum',
     'matic': 'matic-network',
-    'near': 'near',
-    'xrp': 'ripple',
+    # 'near': 'near',
+    # 'xrp': 'ripple',
     'xtz': 'tezos',
     'sol': 'solana',
-    'icp': 'internet-computer'
 }
 
 commoditiesIdBindings = { # Yahoo Finance API ID bindings
-    'gold': 'GC=F',
-    'silver': 'SI=F',
-    'copper': 'HG=F',
-    'crudeoil': 'CL=F'
+    # 'gold': 'GC=F',
+    # 'silver': 'SI=F',
+    # 'copper': 'HG=F',
+    # 'crudeoil': 'CL=F'
 }
-
-displayTime = 0  # How long each ticker should display each currency for, zero for continuous scrolling
 
 priceCheckThreshold = 10    # How many times the ticker should cycle through before checking for new prices
 
 iconGap = 6 # How much space should be between the icon and the text
+
+priceGap = 10 # How much space should be between each price ticker
 
 # Configuration for the matrix
 options = RGBMatrixOptions()
@@ -84,29 +84,27 @@ while failConn == True:
     except:
         pass
 
-def showPrice(assetType, symbol, price, priceChange):
-    global prevImage
+def genPrice(assetType, symbol, price, priceChange):
+#     global prevImage
     nameFont = ImageFont.load("fonts/pil/6x10.pil")
     priceFont = ImageFont.load("fonts/pil/10x20.pil")
     changeFont = ImageFont.load("fonts/pil/6x12.pil")
 
-    image = Image.new('RGBA', (128,32))
+    image = Image.new('RGBA', (1000,32))
     draw = ImageDraw.Draw(image)
 
     icon = Image.open(f"icons/{assetType}/{symbol}.png")
     image.paste(icon, (0,0))
 
-    while draw.textlength((f"${price}"), priceFont) > 90:
-        if type(price) == float:
-            #price = round(price, len(str(price).split('.')[1])-1)
-            if price < 1:
-                price = round(price, 6)
-            elif price < 10:
-                price = round(price, 4)
-            else:
-                price = round(price, 2)
+    if type(price) == float:
+        if price < 1:
+            price = round(price, 6)
+        elif price < 10:
+            price = round(price, 4)
+        elif price < 1000:
+            price = round(price, 2)
         else:
-            priceFont = ImageFont.load("fonts/pil/9x18.pil")
+            price = round(price, 0)
 
     price = str(price)
     
@@ -150,23 +148,61 @@ def showPrice(assetType, symbol, price, priceChange):
         print("Error: Invalid price change value")
         sys.exit(1)
 
+    # crop the image horizontally to the width of the content
+    # Check if price width is lonnger than price change width
+    if draw.textlength(f"{symbol.upper()} ${price}", nameFont) < draw.textlength(f"%{priceChange}", changeFont) + 7:
+        image = image.crop((0,0,icon.width + iconGap + draw.textlength(f"%{priceChange}", changeFont)+7,32))
+    else:
+        image = image.crop((0,0,icon.width + iconGap + draw.textlength(f"${price}", priceFont),32))
+    return image
 
-    for i in range(0, 128):
+lastImage = None
+
+# Use the genPrice function to create a long image of all the prices in the symbol, price and priceChange lists, then scroll it across the screen.
+def showPrice(prices):
+    global lastImage
+    # Create a new image
+    preImage = Image.new('RGBA', (10,32))
+
+
+    for item in cryptoIdBindings:
+        image = genPrice('crypto', item, prices[cryptoIdBindings[item]]['aud'], prices[cryptoIdBindings[item]]['aud_24h_change'])
+        # append the image to preImage, after expandng preImage to fit the new image, adding a 10 pixel gap between images
+
+        tmp = Image.new('RGBA', (preImage.width + image.width + priceGap, 32))
+        tmp.paste(preImage, (0,0))
+        tmp.paste(image, (preImage.width,0))
+        preImage = tmp
+    
+    for item in stocks:
+        image = genPrice('stock', item.upper(), prices[item.upper()]['usd'], prices[item.upper()]['market_change'])
+        # append the image to preImage, after expandng preImage to fit the new image, adding a 10 pixel gap between images
+
+        tmp = Image.new('RGBA', (preImage.width + image.width + priceGap, 32))
+        tmp.paste(preImage, (0,0))
+        tmp.paste(image, (preImage.width,0))
+        preImage = tmp
+
+    # Paste the last image to the start of preImage, allowing for a smooth transition
+    if lastImage != None:
+        tmp = Image.new('RGBA', (preImage.width + lastImage.width, 32))
+        tmp.paste(lastImage, (0,0))
+        tmp.paste(preImage, (lastImage.width-10,0))
+        preImage = tmp
+
+    # scroll through preImage
+    for i in range(0, preImage.width-128):
         tmp = Image.new('RGBA', (128,32))
 
-        prevImage = prevImage.crop((1,0,128,32))
-        tmp.paste(prevImage, (0,0))
-
-        tmp2 = image.crop((0,0,0+i,32))
-        tmp.paste(tmp2, (127-i,0))
-
+        preImage = preImage.crop((1,0,preImage.width,32))
+        tmp.paste(preImage, (0,0))
 
         matrix.SetImage(tmp.convert('RGB'))
-        time.sleep(0.025)
 
-    time.sleep(displayTime)
+        time.sleep(0.01)
     
-    prevImage = image
+    lastImage = tmp
+
 
 prices = {}
 priceCheckIncrement = priceCheckThreshold
@@ -174,18 +210,21 @@ priceCheckIncrement = priceCheckThreshold
 async def fetchPrices(cryptoToFetch, comsToFetch):
     global prices
     async with aiohttp.ClientSession() as session:
-        async with session.get(f"https://api.coingecko.com/api/v3/simple/price?ids={','.join(cryptoToFetch)}&vs_currencies=aud&include_24hr_change=true&precision=18") as resp:
-            prices = await resp.json()
-        async with session.get(f"https://query1.finance.yahoo.com/v7/finance/quote?lang=en-US&region=US&corsDomain=finance.yahoo.com&symbols={','.join(stocks)}") as resp:
-            sp = await resp.json()
-            sp = sp['quoteResponse']['result']
-            for stock in sp:
-                prices[stock['symbol']] = {'usd':stock['regularMarketPrice'],'market_change':stock['regularMarketChangePercent']}
-        async with session.get(f"https://query1.finance.yahoo.com/v7/finance/quote?lang=en-US&region=US&corsDomain=finance.yahoo.com&symbols={','.join(comsToFetch)}") as resp:
-            cp = await resp.json()
-            cp = cp['quoteResponse']['result']
-            for com in cp:
-                prices[com['symbol']] = {'usd':com['regularMarketPrice'],'market_change':com['regularMarketChangePercent']}
+        if len(cryptoToFetch) > 0:
+            async with session.get(f"https://api.coingecko.com/api/v3/simple/price?ids={','.join(cryptoToFetch)}&vs_currencies=aud&include_24hr_change=true&precision=18") as resp:
+                prices = await resp.json()
+        if len(stocks) > 0:
+            async with session.get(f"https://query1.finance.yahoo.com/v7/finance/quote?lang=en-US&region=US&corsDomain=finance.yahoo.com&symbols={','.join(stocks)}") as resp:
+                sp = await resp.json()
+                sp = sp['quoteResponse']['result']
+                for stock in sp:
+                    prices[stock['symbol']] = {'usd':stock['regularMarketPrice'],'market_change':stock['regularMarketChangePercent']}
+        if len(comsToFetch) > 0:
+            async with session.get(f"https://query1.finance.yahoo.com/v7/finance/quote?lang=en-US&region=US&corsDomain=finance.yahoo.com&symbols={','.join(comsToFetch)}") as resp:
+                cp = await resp.json()
+                cp = cp['quoteResponse']['result']
+                for com in cp:
+                    prices[com['symbol']] = {'usd':com['regularMarketPrice'],'market_change':com['regularMarketChangePercent']}
     return prices
 
 while True:
@@ -203,20 +242,10 @@ while True:
         priceCheckIncrement = 0
     priceCheckIncrement += 1
 
-    for item in cryptoIdBindings:
-        if prices != {}:
-            showPrice('crypto', item, prices[cryptoIdBindings[item]]['aud'], prices[cryptoIdBindings[item]]['aud_24h_change'])
-        else:
-            time.sleep(2)
-    for item in stocks:
-        if prices != {}:
-            showPrice('stock', item, prices[item.upper()]['usd'], prices[item.upper()]['market_change'])
-        else:
-            time.sleep(2)
-    for item in commoditiesIdBindings:
-        if prices != {}:
-            showPrice('commodity', item, prices[commoditiesIdBindings[item]]['usd'], prices[commoditiesIdBindings[item]]['market_change'])
-        else:
-            time.sleep(2)
+    if prices != {}:
+        showPrice(prices)
+    else:
+        time.sleep(2)
+
 
         
