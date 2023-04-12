@@ -1,5 +1,6 @@
 # RGB Matrix Ticker Software
 # By Joel Muscat (PuffCode)
+# github.com/Puffball101961/matrixticker
 
 import time
 import sys
