@@ -6,42 +6,24 @@ import sys
 import asyncio
 import aiohttp
 import requests
+import yaml
 
 from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 from PIL import Image, ImageFont, ImageDraw, ImageOps, ImageFilter
 
+with open("config.yml", 'r') as ymlfile:
+    cfg = yaml.safe_load(ymlfile)
 
-stocks = [
-    'aapl',
-    'amzn',
-    'goog',
-    'msft'
-]
-
-cryptoIdBindings = { # Coingecko API ID bindings
-    'btc': 'bitcoin',
-    'ltc': 'litecoin',
-    'eth': 'ethereum',
-    'matic': 'matic-network',
-    'near': 'near',
-    'xrp': 'ripple',
-    'xtz': 'tezos',
-    'sol': 'solana',
-    'icp': 'internet-computer'
-}
-
-commoditiesIdBindings = { # Yahoo Finance API ID bindings
-    'gold': 'GC=F',
-    'silver': 'SI=F',
-    'copper': 'HG=F',
-    'crudeoil': 'CL=F'
-}
-
-displayTime = 0  # How long each ticker should display each currency for, zero for continuous scrolling
-
-priceCheckThreshold = 10    # How many times the ticker should cycle through before checking for new prices
-
-iconGap = 6 # How much space should be between the icon and the text
+# Load config
+stocks = cfg['stocks']
+cryptoIdBindings = cfg['cryptoIdBindings']
+priceCheckThreshold = cfg['priceCheckFrequency']
+iconGap = cfg['iconGap']
+priceGap = cfg['priceGap']
+awakeBrightness = cfg['awakeBrightness']
+sleepBrightness = cfg['sleepBrightness']
+sleepStart = cfg['sleepStart']
+sleepEnd = cfg['sleepEnd']
 
 # Configuration for the matrix
 options = RGBMatrixOptions()
@@ -171,21 +153,18 @@ def showPrice(assetType, symbol, price, priceChange):
 prices = {}
 priceCheckIncrement = priceCheckThreshold
 
-async def fetchPrices(cryptoToFetch, comsToFetch):
+async def fetchPrices(cryptoToFetch):
     global prices
     async with aiohttp.ClientSession() as session:
-        async with session.get(f"https://api.coingecko.com/api/v3/simple/price?ids={','.join(cryptoToFetch)}&vs_currencies=aud&include_24hr_change=true&precision=18") as resp:
-            prices = await resp.json()
-        async with session.get(f"https://query1.finance.yahoo.com/v7/finance/quote?lang=en-US&region=US&corsDomain=finance.yahoo.com&symbols={','.join(stocks)}") as resp:
-            sp = await resp.json()
-            sp = sp['quoteResponse']['result']
-            for stock in sp:
-                prices[stock['symbol']] = {'usd':stock['regularMarketPrice'],'market_change':stock['regularMarketChangePercent']}
-        async with session.get(f"https://query1.finance.yahoo.com/v7/finance/quote?lang=en-US&region=US&corsDomain=finance.yahoo.com&symbols={','.join(comsToFetch)}") as resp:
-            cp = await resp.json()
-            cp = cp['quoteResponse']['result']
-            for com in cp:
-                prices[com['symbol']] = {'usd':com['regularMarketPrice'],'market_change':com['regularMarketChangePercent']}
+        if len(cryptoToFetch) > 0:
+            async with session.get(f"https://api.coingecko.com/api/v3/simple/price?ids={','.join(cryptoToFetch)}&vs_currencies=aud&include_24hr_change=true&precision=18") as resp:
+                prices = await resp.json()
+        if len(stocks) > 0:
+            async with session.get(f"https://query1.finance.yahoo.com/v7/finance/quote?lang=en-US&region=US&corsDomain=finance.yahoo.com&symbols={','.join(stocks)}") as resp:
+                sp = await resp.json()
+                sp = sp['quoteResponse']['result']
+                for stock in sp:
+                    prices[stock['symbol']] = {'usd':stock['regularMarketPrice'],'market_change':stock['regularMarketChangePercent']}
     return prices
 
 while True:
@@ -194,11 +173,7 @@ while True:
         for item in cryptoIdBindings:
             cryptoToFetch.append(cryptoIdBindings[item])
 
-        comsToFetch = []
-        for item in commoditiesIdBindings:
-            comsToFetch.append(commoditiesIdBindings[item])
-
-        prices = asyncio.run(fetchPrices(cryptoToFetch, comsToFetch))        
+        prices = asyncio.run(fetchPrices(cryptoToFetch))        
         
         priceCheckIncrement = 0
     priceCheckIncrement += 1

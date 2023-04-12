@@ -1,0 +1,38 @@
+stocks:
+  - aapl
+  - amzn
+  - goog
+  - msft
+
+cryptoIdBindings:
+  btc: bitcoin
+  ltc: litecoin
+  eth: ethereum
+  matic: matic-network
+  near: near
+  xrp: ripple
+  xtz: tezos
+  sol: solana
+
+
+# How many times the ticker should cycle 
+# before checking for new prices
+priceCheckFrequency: 10
+
+# Pixel Gap between icon and the text
+iconGap: 6
+
+# Pixel Gap between each stock/ crypto
+priceGap: 10
+
+# Brightness when the screen is awake
+awakeBrightness: 75
+
+# Brightness when the screen is asleep
+sleepBrightness: 10 
+
+# Hour of the day to start sleeping
+sleepStart: 22 
+
+# Hour of the day to stop sleeping
+sleepEnd: 22 
