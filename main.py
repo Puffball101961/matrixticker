@@ -14,6 +14,7 @@ from PIL import Image, ImageFont, ImageDraw, ImageOps, ImageFilter
 with open("config.yml", 'r') as ymlfile:
     cfg = yaml.safe_load(ymlfile)
 
+
 # Load config
 stocks = cfg['stocks']
 cryptoIdBindings = cfg['cryptoIdBindings']
@@ -66,29 +67,26 @@ while failConn == True:
     except:
         pass
 
-def showPrice(assetType, symbol, price, priceChange):
-    global prevImage
+def genPrice(assetType, symbol, price, priceChange):
     nameFont = ImageFont.load("fonts/pil/6x10.pil")
     priceFont = ImageFont.load("fonts/pil/10x20.pil")
     changeFont = ImageFont.load("fonts/pil/6x12.pil")
 
-    image = Image.new('RGBA', (128,32))
+    image = Image.new('RGBA', (1000,32))
     draw = ImageDraw.Draw(image)
 
-    icon = Image.open(f"icons/{assetType}/{symbol}.png")
+    icon = Image.open(f"icons/{assetType}/{symbol.lower()}.png")
     image.paste(icon, (0,0))
 
-    while draw.textlength((f"${price}"), priceFont) > 90:
-        if type(price) == float:
-            #price = round(price, len(str(price).split('.')[1])-1)
-            if price < 1:
-                price = round(price, 6)
-            elif price < 10:
-                price = round(price, 4)
-            else:
-                price = round(price, 2)
+    if type(price) == float:
+        if price < 1:
+            price = round(price, 6)
+        elif price < 10:
+            price = round(price, 4)
+        elif price < 1000:
+            price = round(price, 2)
         else:
-            priceFont = ImageFont.load("fonts/pil/9x18.pil")
+            price = round(price, 0)
 
     price = str(price)
     
@@ -132,23 +130,61 @@ def showPrice(assetType, symbol, price, priceChange):
         print("Error: Invalid price change value")
         sys.exit(1)
 
+    # crop the image horizontally to the width of the content
+    # Check if price width is lonnger than price change width
+    if draw.textlength(f"{symbol.upper()} ${price}", nameFont) < draw.textlength(f"%{priceChange}", changeFont) + 7:
+        image = image.crop((0,0,icon.width + iconGap + draw.textlength(f"%{priceChange}", changeFont)+7,32))
+    else:
+        image = image.crop((0,0,icon.width + iconGap + draw.textlength(f"${price}", priceFont),32))
+    return image
 
-    for i in range(0, 128):
+lastImage = None
+
+# Use the genPrice function to create a long image of all the prices in the symbol, price and priceChange lists, then scroll it across the screen.
+def showPrice(prices):
+    global lastImage
+    # Create a new image
+    preImage = Image.new('RGBA', (10,32))
+
+
+    for item in cryptoIdBindings:
+        image = genPrice('crypto', item, prices[cryptoIdBindings[item]]['aud'], prices[cryptoIdBindings[item]]['aud_24h_change'])
+        # append the image to preImage, after expandng preImage to fit the new image, adding a 10 pixel gap between images
+
+        tmp = Image.new('RGBA', (preImage.width + image.width + priceGap, 32))
+        tmp.paste(preImage, (0,0))
+        tmp.paste(image, (preImage.width,0))
+        preImage = tmp
+    
+    for item in stocks:
+        image = genPrice('stock', item.upper(), prices[item.upper()]['usd'], prices[item.upper()]['market_change'])
+        # append the image to preImage, after expandng preImage to fit the new image, adding a 10 pixel gap between images
+
+        tmp = Image.new('RGBA', (preImage.width + image.width + priceGap, 32))
+        tmp.paste(preImage, (0,0))
+        tmp.paste(image, (preImage.width,0))
+        preImage = tmp
+
+    # Paste the last image to the start of preImage, allowing for a smooth transition
+    if lastImage != None:
+        tmp = Image.new('RGBA', (preImage.width + lastImage.width, 32))
+        tmp.paste(lastImage, (0,0))
+        tmp.paste(preImage, (lastImage.width-10,0))
+        preImage = tmp
+
+    # scroll through preImage
+    for i in range(0, preImage.width-128):
         tmp = Image.new('RGBA', (128,32))
 
-        prevImage = prevImage.crop((1,0,128,32))
-        tmp.paste(prevImage, (0,0))
-
-        tmp2 = image.crop((0,0,0+i,32))
-        tmp.paste(tmp2, (127-i,0))
-
+        preImage = preImage.crop((1,0,preImage.width,32))
+        tmp.paste(preImage, (0,0))
 
         matrix.SetImage(tmp.convert('RGB'))
-        time.sleep(0.025)
 
-    time.sleep(displayTime)
+        time.sleep(0.025)
     
-    prevImage = image
+    lastImage = tmp
+
 
 prices = {}
 priceCheckIncrement = priceCheckThreshold
@@ -168,6 +204,12 @@ async def fetchPrices(cryptoToFetch):
     return prices
 
 while True:
+    # Check if the display should be awake or sleeping
+    if time.localtime().tm_hour >= sleepEnd and time.localtime().tm_hour < sleepStart:
+        matrix.brightness = awakeBrightness
+    else:
+        matrix.brightness = sleepBrightness
+        
     if priceCheckIncrement >= priceCheckThreshold:
         cryptoToFetch = []
         for item in cryptoIdBindings:
@@ -178,20 +220,11 @@ while True:
         priceCheckIncrement = 0
     priceCheckIncrement += 1
 
-    for item in cryptoIdBindings:
-        if prices != {}:
-            showPrice('crypto', item, prices[cryptoIdBindings[item]]['aud'], prices[cryptoIdBindings[item]]['aud_24h_change'])
-        else:
-            time.sleep(2)
-    for item in stocks:
-        if prices != {}:
-            showPrice('stock', item, prices[item.upper()]['usd'], prices[item.upper()]['market_change'])
-        else:
-            time.sleep(2)
-    for item in commoditiesIdBindings:
-        if prices != {}:
-            showPrice('commodity', item, prices[commoditiesIdBindings[item]]['usd'], prices[commoditiesIdBindings[item]]['market_change'])
-        else:
-            time.sleep(2)
+    if prices != {}:
+        showPrice(prices)
+    else:
+        time.sleep(2)
+    
+    
 
         
