@@ -7,7 +7,6 @@ import asyncio
 import aiohttp
 import requests
 
-#from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 from PIL import Image, ImageFont, ImageDraw, ImageOps, ImageFilter
 
@@ -42,6 +41,14 @@ priceCheckThreshold = 10    # How many times the ticker should cycle through bef
 iconGap = 6 # How much space should be between the icon and the text
 
 priceGap = 10 # How much space should be between each price ticker
+
+awakeBrightness = 75 # Brightness when the screen is awake
+
+sleepBrightness = 10 # Brightness when the screen is asleep
+
+sleepStart = 22 # Hour of the day to start sleeping
+
+sleepEnd = 6 # Hour of the day to stop sleeping
 
 # Configuration for the matrix
 options = RGBMatrixOptions()
@@ -228,6 +235,12 @@ async def fetchPrices(cryptoToFetch, comsToFetch):
     return prices
 
 while True:
+    # Check if the display should be awake or sleeping
+    if time.localtime().tm_hour >= sleepEnd and time.localtime().tm_hour < sleepStart:
+        matrix.brightness = awakeBrightness
+    else:
+        matrix.brightness = sleepBrightness
+        
     if priceCheckIncrement >= priceCheckThreshold:
         cryptoToFetch = []
         for item in cryptoIdBindings:
@@ -246,6 +259,7 @@ while True:
         showPrice(prices)
     else:
         time.sleep(2)
-
+    
+    
 
         
