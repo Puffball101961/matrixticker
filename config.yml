@@ -35,4 +35,4 @@ sleepBrightness: 10
 sleepStart: 22 
 
 # Hour of the day to stop sleeping
-sleepEnd: 22 
+sleepEnd: 6 
