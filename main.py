@@ -9,7 +9,7 @@ import aiohttp
 import requests
 import yaml
 
-from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
+from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions, graphics
 from PIL import Image, ImageFont, ImageDraw, ImageOps, ImageFilter
 
 with open("config.yml", 'r') as ymlfile:
@@ -157,14 +157,15 @@ def showPrice(prices):
         tmp.paste(image, (preImage.width,0))
         preImage = tmp
     
-    for item in stocks:
-        image = genPrice('stock', item.upper(), prices[item.upper()]['usd'], prices[item.upper()]['market_change'])
-        # append the image to preImage, after expandng preImage to fit the new image, adding a 10 pixel gap between images
+    for i in range(priceCheckThreshold):
+        for item in stocks:
+                image = genPrice('stock', item.upper(), prices[item.upper()]['usd'], prices[item.upper()]['market_change'])
+                # append the image to preImage, after expandng preImage to fit the new image, adding a 10 pixel gap between images
 
-        tmp = Image.new('RGBA', (preImage.width + image.width + priceGap, 32))
-        tmp.paste(preImage, (0,0))
-        tmp.paste(image, (preImage.width,0))
-        preImage = tmp
+                tmp = Image.new('RGBA', (preImage.width + image.width + priceGap, 32))
+                tmp.paste(preImage, (0,0))
+                tmp.paste(image, (preImage.width,0))
+                preImage = tmp
 
     # Paste the last image to the start of preImage, allowing for a smooth transition
     if lastImage != None:
@@ -188,7 +189,6 @@ def showPrice(prices):
 
 
 prices = {}
-priceCheckIncrement = priceCheckThreshold
 
 async def fetchPrices(cryptoToFetch):
     global prices
@@ -211,15 +211,11 @@ while True:
     else:
         matrix.brightness = sleepBrightness
         
-    if priceCheckIncrement >= priceCheckThreshold:
-        cryptoToFetch = []
-        for item in cryptoIdBindings:
-            cryptoToFetch.append(cryptoIdBindings[item])
+    cryptoToFetch = []
+    for item in cryptoIdBindings:
+        cryptoToFetch.append(cryptoIdBindings[item])
 
-        prices = asyncio.run(fetchPrices(cryptoToFetch))        
-        
-        priceCheckIncrement = 0
-    priceCheckIncrement += 1
+    prices = asyncio.run(fetchPrices(cryptoToFetch))        
 
     if prices != {}:
         showPrice(prices)
