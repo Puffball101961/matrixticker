@@ -9,7 +9,7 @@ import aiohttp
 import requests
 import yaml
 
-from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions, graphics
+from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 from PIL import Image, ImageFont, ImageDraw, ImageOps, ImageFilter
 
 with open("config.yml", 'r') as ymlfile:
