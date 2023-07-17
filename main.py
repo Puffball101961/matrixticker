@@ -68,11 +68,11 @@ while failConn == True:
     except:
         pass
 
-def genPrice(assetType, symbol, price, priceChange):
-    nameFont = ImageFont.load("fonts/pil/6x10.pil")
-    priceFont = ImageFont.load("fonts/pil/10x20.pil")
-    changeFont = ImageFont.load("fonts/pil/6x12.pil")
+nameFont = ImageFont.load("fonts/pil/6x10.pil")
+priceFont = ImageFont.load("fonts/pil/10x20.pil")
+changeFont = ImageFont.load("fonts/pil/6x12.pil")
 
+def genPrice(assetType, symbol, price, priceChange):
     image = Image.new('RGBA', (1000,32))
     draw = ImageDraw.Draw(image)
 
