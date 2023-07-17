@@ -7,6 +7,13 @@ This project was a part of hackclub.com 's Winter Hardware Wonderland Program.
 This Project is not 100% complete, and is not foolproof. You will need some knowledge and common sense to get it working.
 I am planning to refine the process when I have time to work on it.
 
+A complete rewrite is in progress! The new code architecture will be a lot more modular, allowing for much easier custom additions to the ticker.
+Features expected to come with (or soon after) this update include:
+- Modules
+- Web UI
+- Automatic crypto detection from config
+- And More!
+
 ## Make your own
 https://www.instructables.com/Cryptocurrency-and-Stock-Price-Ticker/
 
