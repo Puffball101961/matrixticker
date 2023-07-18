@@ -24,7 +24,7 @@ sleepStart: 22
 sleepEnd: 6 
 
 # Display in full or half mode
-displayMode: full
+displayMode: half
 topDisplayModules: [crypto]
 bottomDisplayModules: []
 

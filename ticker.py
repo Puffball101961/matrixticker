@@ -52,19 +52,23 @@ nameFont = ImageFont.load("fonts/pil/6x10.pil")
 priceFont = ImageFont.load("fonts/pil/10x20.pil")
 changeFont = ImageFont.load("fonts/pil/6x12.pil")
 
+nameFontHalf = ImageFont.load("fonts/pil/5x7.pil")
+priceFontHalf = ImageFont.load("fonts/pil/6x10.pil")
+changeFontHalf = ImageFont.load("fonts/pil/6x10.pil")
+
 
 
 # STARTUP JOBS
 
-# # Splash Screen
-# splash = Image.new('RGBA', (128,32))
-# draw = ImageDraw.Draw(splash)
-# draw.text((1,0), "RGB Matrix Ticker", font=nameFont, fill=(255,255,255))
-# draw.text((1,10), "by PuffCode", font=nameFont, fill=(255,255,255))
-# draw.text((1,20), "v0.1", font=changeFont, fill=(255,255,255))
-# matrix.SetImage(splash.convert('RGB'))
-# time.sleep(2)
-# matrix.Clear()
+# Splash Screen
+splash = Image.new('RGBA', (128,32))
+draw = ImageDraw.Draw(splash)
+draw.text((1,0), "RGB Matrix Ticker", font=nameFont, fill=(255,255,255))
+draw.text((1,10), "by PuffCode", font=nameFont, fill=(255,255,255))
+draw.text((1,20), "v0.1", font=changeFont, fill=(255,255,255))
+matrix.SetImage(splash.convert('RGB'))
+time.sleep(2)
+matrix.Clear()
 
 # Test Network Connection
 test = Image.new('RGBA', (128,32))
@@ -76,7 +80,6 @@ matrix.SetImage(test.convert('RGB'))
 connected = False
 
 while not connected:
-    print('test')
     try:
         res = requests.get("https://google.com")
         if res.status_code == 200:
@@ -101,7 +104,7 @@ draw.text((16,20), "Connected", font=ImageFont.load('fonts/pil/5x8.pil'), fill=(
 draw.text((1,10), "Connecting...", font=nameFont, fill=(255,255,255))
 matrix.SetImage(test.convert('RGB'))
 
-time.sleep(1000)
+time.sleep(2)
 
 # MODULES
 
@@ -131,96 +134,191 @@ def cryptoModule(mode: str = 'full'):
     
     images = []
 
-    for coin in idSymbolDict:
-        image = Image.new('RGBA', (1000,32))
-        draw = ImageDraw.Draw(image)
-        
-        icon = Image.open(f"icons/crypto/{coin}.png")
-        image.paste(icon, (0,0))
-        
-        price = prices[coin]['aud']
-        symbol = idSymbolDict[coin]
-        priceChange = round(prices[coin]['aud_24h_change'], 2)
-
-        if type(price) == float:
-            if price < 1:
-                price = round(price, 6)
-            elif price < 10:
-                price = round(price, 4)
-            elif price < 1000:
-                price = round(price, 2)
-            else:
-                price = round(price, 0)
-                
-        price = str(price)
-        if len(price.split('.')[1]) < 2:
-            price += "0"
-        
-        if price[-3:] == ".00":
-            price = price[:-3]
-        
-        draw.text((icon.width + CONFIG_ICON_GAP ,-1), f"{symbol.upper()}", font=nameFont, fill=(255,255,255))
-        draw.text((icon.width + CONFIG_ICON_GAP ,6), "$" + str(price), font=priceFont, fill=(255,255,255))
-        
-        if priceChange > 0:
-            draw.text((icon.width + CONFIG_ICON_GAP,22), "%" + str(priceChange), font=changeFont, fill=(0,255,0))
-
-            dist = draw.textlength(str(priceChange), changeFont)
-            dist += 7
-
-            draw.polygon([(icon.width + CONFIG_ICON_GAP + dist, 31), (icon.width + CONFIG_ICON_GAP + dist + 3, 26), (icon.width + CONFIG_ICON_GAP + dist + 6, 31)], fill=(0,255,0))
-
-        elif priceChange < 0:
-            draw.text((icon.width + CONFIG_ICON_GAP,22), "%" + str(priceChange)[1:], font=changeFont, fill=(255,0,0))
-
-            dist = draw.textlength(str(priceChange)[1:], changeFont)
-            dist += 7
-
-            draw.polygon([(icon.width + CONFIG_ICON_GAP + dist, 26), (icon.width + CONFIG_ICON_GAP + dist + 3, 31), (icon.width + CONFIG_ICON_GAP + dist + 6, 26)], fill=(255,0,0))
-
-        elif priceChange == 0:
-            priceChange = 0
-            draw.text((icon.width + CONFIG_ICON_GAP,22), "%" + str(priceChange), font=changeFont, fill=(0,0,255))
-
-            dist = draw.textlength(str(priceChange), changeFont)
-            dist += 8
-
-            draw.ellipse((icon.width + CONFIG_ICON_GAP + dist, 27, icon.width + CONFIG_ICON_GAP + dist + 6, 30), fill=(0,0,255))
-        else:
-            print("Error: Invalid price change value")
-            sys.exit(1)
+    if mode == 'full':
+        for coin in idSymbolDict:
+            image = Image.new('RGBA', (1000,32))
+            draw = ImageDraw.Draw(image)
             
-        if draw.textlength(f"{symbol.upper()} ${price}", nameFont) < draw.textlength(f"%{priceChange}", changeFont) + 7:
-            image = image.crop((0,0,icon.width + CONFIG_ICON_GAP + draw.textlength(f"%{priceChange}", changeFont)+7,32))
-        else:
-            image = image.crop((0,0,icon.width + CONFIG_ICON_GAP + draw.textlength(f"${price}", priceFont),32))
-        
-        images.append(image)
-    
-    return images
-    
+            icon = Image.open(f"icons/crypto/{coin}.png")
+            image.paste(icon, (0,0))
+            
+            price = prices[coin]['aud']
+            symbol = idSymbolDict[coin]
+            priceChange = round(prices[coin]['aud_24h_change'], 2)
+
+            if type(price) == float:
+                if price < 1:
+                    price = round(price, 6)
+                elif price < 10:
+                    price = round(price, 4)
+                elif price < 1000:
+                    price = round(price, 2)
+                else:
+                    price = round(price, 0)
+                    
+            price = str(price)
+            if len(price.split('.')[1]) < 2:
+                price += "0"
+            
+            if price[-3:] == ".00":
+                price = price[:-3]
+            
+            draw.text((icon.width + CONFIG_ICON_GAP ,-1), f"{symbol.upper()}", font=nameFont, fill=(255,255,255))
+            draw.text((icon.width + CONFIG_ICON_GAP ,6), "$" + str(price), font=priceFont, fill=(255,255,255))
+            
+            if priceChange > 0:
+                draw.text((icon.width + CONFIG_ICON_GAP,22), "%" + str(priceChange), font=changeFont, fill=(0,255,0))
+
+                dist = draw.textlength(str(priceChange), changeFont)
+                dist += 7
+
+                draw.polygon([(icon.width + CONFIG_ICON_GAP + dist, 31), (icon.width + CONFIG_ICON_GAP + dist + 3, 26), (icon.width + CONFIG_ICON_GAP + dist + 6, 31)], fill=(0,255,0))
+
+            elif priceChange < 0:
+                draw.text((icon.width + CONFIG_ICON_GAP,22), "%" + str(priceChange)[1:], font=changeFont, fill=(255,0,0))
+
+                dist = draw.textlength(str(priceChange)[1:], changeFont)
+                dist += 7
+
+                draw.polygon([(icon.width + CONFIG_ICON_GAP + dist, 26), (icon.width + CONFIG_ICON_GAP + dist + 3, 31), (icon.width + CONFIG_ICON_GAP + dist + 6, 26)], fill=(255,0,0))
+
+            elif priceChange == 0:
+                priceChange = 0
+                draw.text((icon.width + CONFIG_ICON_GAP,22), "%" + str(priceChange), font=changeFont, fill=(0,0,255))
+
+                dist = draw.textlength(str(priceChange), changeFont)
+                dist += 8
+
+                draw.ellipse((icon.width + CONFIG_ICON_GAP + dist, 27, icon.width + CONFIG_ICON_GAP + dist + 6, 30), fill=(0,0,255))
+            else:
+                print("Error: Invalid price change value")
+                sys.exit(1)
+                
+            if draw.textlength(f"{symbol.upper()} ${price}", nameFont) < draw.textlength(f"%{priceChange}", changeFont) + 7:
+                image = image.crop((0,0,icon.width + CONFIG_ICON_GAP + draw.textlength(f"%{priceChange}", changeFont)+7,32))
+            else:
+                image = image.crop((0,0,icon.width + CONFIG_ICON_GAP + draw.textlength(f"${price}", priceFont),32))
+            
+            images.append(image)    
+        return images
+    if mode == 'half':
+        for coin in idSymbolDict:
+            image = Image.new('RGBA', (1000,16))
+            draw = ImageDraw.Draw(image)
+            
+            icon = Image.open(f"icons/crypto/{coin}.png")
+            icon.thumbnail((icon.width, 16))
+            image.paste(icon, (0,0))
+            
+            price = prices[coin]['aud']
+            symbol = idSymbolDict[coin]
+            priceChange = round(prices[coin]['aud_24h_change'], 2)
+
+            if type(price) == float:
+                if price < 1:
+                    price = round(price, 6)
+                elif price < 10:
+                    price = round(price, 4)
+                elif price < 1000:
+                    price = round(price, 2)
+                else:
+                    price = round(price, 0)
+                    
+            price = str(price)
+            if len(price.split('.')[1]) < 2:
+                price += "0"
+            
+            if price[-3:] == ".00":
+                price = price[:-3]
+            
+            draw.text((icon.width + CONFIG_ICON_GAP ,0), f"{symbol.upper()}", font=nameFontHalf, fill=(255,255,255))
+            draw.text((icon.width + CONFIG_ICON_GAP ,6), "$" + str(price), font=priceFontHalf, fill=(255,255,255))
+            
+            if priceChange > 0:
+                draw.text((icon.width + CONFIG_ICON_GAP + draw.textlength("$" + str(price)) + 3,6), "%" + str(priceChange), font=changeFontHalf, fill=(0,255,0))
+
+                dist = draw.textlength(str(priceChange), changeFont)
+                dist += 9
+
+                draw.polygon([(icon.width + CONFIG_ICON_GAP + dist + draw.textlength("$" + str(price)), 12), (icon.width + CONFIG_ICON_GAP + dist + draw.textlength("$" + str(price)) + 3, 7), (icon.width + CONFIG_ICON_GAP + dist + draw.textlength("$" + str(price)) + 6, 12)], fill=(0,255,0))
+
+            elif priceChange < 0:
+                draw.text((icon.width + CONFIG_ICON_GAP + draw.textlength("$" + str(price)) + 3,6), "%" + str(priceChange)[1:], font=changeFontHalf, fill=(255,0,0))
+
+                dist = draw.textlength(str(priceChange)[1:], changeFont)
+                dist += 9
+
+                draw.polygon([(icon.width + CONFIG_ICON_GAP + dist + draw.textlength("$" + str(price)), 7), (icon.width + CONFIG_ICON_GAP + dist + draw.textlength("$" + str(price)) + 3, 12), (icon.width + CONFIG_ICON_GAP + dist + draw.textlength("$" + str(price)) + 6, 7)], fill=(255,0,0))
+
+            elif priceChange == 0:
+                priceChange = 0
+                draw.text((icon.width + CONFIG_ICON_GAP + draw.textlength("$" + str(price)) + 3,6), "%" + str(priceChange), font=changeFontHalf, fill=(0,0,255))
+
+                dist = draw.textlength(str(priceChange), changeFont)
+                dist += 10
+
+                draw.ellipse((icon.width + CONFIG_ICON_GAP + dist + draw.textlength("$" + str(price)), 27, icon.width + CONFIG_ICON_GAP + dist  + draw.textlength("$" + str(price)) + 6, 30), fill=(0,0,255))
+            else:
+                print("Error: Invalid price change value")
+                sys.exit(1)
+            
+            image = image.crop((0,0,icon.width + CONFIG_ICON_GAP + draw.textlength(f"${price}", priceFont) + draw.textlength(f"%{priceChange}", changeFontHalf)+7,16))
+            
+            image.crop((0,0,image.width, 16))
+            images.append(image)    
+        return images
 
 def renderFrames(renderQueue, mode: str = "full"):
-    # Join render queue together
-    preImage = Image.new('RGBA', (10,32))
-    
-    for image in renderQueue:
-        tmp = Image.new('RGBA', (preImage.width + image.width + CONFIG_PRICE_GAP, 32))
-        tmp.paste(preImage, (0,0))
-        tmp.paste(image, (preImage.width,0))
-        preImage = tmp
-    
-    # Render to matrix
-    for i in range(0, preImage.width):
-        tmp = Image.new('RGBA', (128,32))
+    if mode == 'full':
+        # Join render queue together
+        preImage = Image.new('RGBA', (10,32))
+        
+        for image in renderQueue:
+            tmp = Image.new('RGBA', (preImage.width + image.width + CONFIG_PRICE_GAP, 32))
+            tmp.paste(preImage, (0,0))
+            tmp.paste(image, (preImage.width,0))
+            preImage = tmp
+        
+        # Render to matrix
+        for i in range(0, preImage.width):
+            tmp = Image.new('RGBA', (128,32))
 
-        preImage = preImage.crop((1,0,preImage.width,32))
-        tmp.paste(preImage, (0,0))
+            preImage = preImage.crop((1,0,preImage.width,32))
+            tmp.paste(preImage, (0,0))
 
-        matrix.SetImage(tmp.convert('RGB'))
+            matrix.SetImage(tmp.convert('RGB'))
 
-        time.sleep(0.025)
-    
+            time.sleep(0.025)
+    elif mode == 'half':
+        topList = renderQueue[0]
+        bottomList = renderQueue[1]
+
+        # Join render queue together
+        preImageTop = Image.new('RGBA', (10,16))
+        preImageBottom = Image.new('RGBA', (10,16))
+        
+
+        for image in topList:
+            tmp = Image.new('RGBA', (preImageTop.width + image.width + CONFIG_PRICE_GAP, 32))
+            tmp.paste(preImageTop, (0,0))
+            tmp.paste(image, (preImageTop.width,0))
+            preImageTop = tmp
+        for image in bottomList:
+            tmp = Image.new('RGBA', (preImageBottom.width + image.width + CONFIG_PRICE_GAP, 32))
+            tmp.paste(preImageBottom, (0,17))
+            tmp.paste(image, (preImageBottom.width,17))
+            preImageBottom = tmp    
+        
+        # Render to matrix
+        for i in range(0, preImageTop.width):
+            tmp = Image.new('RGBA', (128,32))
+
+            tmp.paste(preImageTop, (0,0))
+            tmp.paste(preImageBottom, (0,17))
+
+            matrix.SetImage(tmp.convert('RGB'))
+
+            time.sleep(0.025)
 
 while True:    
     # Check if the display should be awake or sleeping
@@ -228,7 +326,7 @@ while True:
         matrix.brightness = CONFIG_AWAKE_BRIGHTNESS
     else:
         matrix.brightness = CONFIG_SLEEP_BRIGHTNESS
-        
+
     if CONFIG_DISPLAY_MODE == "full":
         renderQueue = []
         if CONFIG_CRYPTO_ENABLED:
@@ -237,7 +335,8 @@ while True:
                 print(image['error'])
                 sys.exit(1)
             else:
-                renderQueue.append(image)
+                for img in image:
+                    renderQueue.append(img)
                 
                 
         # Copy the render queue to the end of itself, so that the queue is rendered CONFIG_MODULE_LOOP times
@@ -246,8 +345,7 @@ while True:
         renderQueue.insert(0, Image.new('RGBA', (128,32)))
 
         renderFrames(renderQueue, CONFIG_DISPLAY_MODE)
-    
-    
+
     elif CONFIG_DISPLAY_MODE == "half":
         renderQueueTop = []
         renderQueueBottom = []
@@ -258,11 +356,11 @@ while True:
                 sys.exit(1)
             else:
                 if 'crypto' in CONFIG_TOP_MODULES:
-                    renderQueueTop.append(image)
+                    renderQueueTop = image
                 elif 'crypto' in CONFIG_BOTTOM_MODULES:
-                    renderQueueBottom.append(image)
+                    renderQueueBottom = image
                 else:
-                    renderQueueTop.append(image)
+                    renderQueueTop = image
                 
         # Copy the render queue to the end of itself, so that the queue is rendered CONFIG_MODULE_LOOP times
         renderQueueTop = renderQueueTop * CONFIG_MODULE_LOOP
@@ -271,5 +369,4 @@ while True:
         renderQueueTop.insert(0, Image.new('RGBA', (128,32)))
         renderQueueBottom.insert(0, Image.new('RGBA', (128,32)))
 
-        
         renderFrames([renderQueueTop, renderQueueBottom], CONFIG_DISPLAY_MODE)
