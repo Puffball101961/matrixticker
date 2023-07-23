@@ -1,0 +1,43 @@
+# RGB Matrix Ticker Config V2
+
+## General Settings
+
+# Pixel Gap between icon and the text
+iconGap: 6
+
+# Pixel Gap between each stock/ crypto
+priceGap: 10
+
+# Amount of times the render queue should loop before re-querying the modules
+moduleLoop: 5
+
+# Brightness when the screen is awake
+awakeBrightness: 75
+
+# Brightness when the screen is asleep
+sleepBrightness: 10 
+
+# Hour of the day to start sleeping
+sleepStart: 22 
+
+# Hour of the day to stop sleeping
+sleepEnd: 6 
+
+# Display in full or half mode
+displayMode: full
+topDisplayModules: [crypto]
+bottomDisplayModules: []
+
+
+## Modules
+
+crypto:
+  enabled: True
+  symbols: # Coingecko Coin IDs
+    - bitcoin
+    - litecoin
+    - ethereum
+    - matic-network
+    - ripple
+    - tezos
+    - solana
