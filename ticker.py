@@ -11,10 +11,10 @@ import requests
 import requests_cache
 import yaml
 
-from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
+from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions, graphics
 from PIL import Image, ImageFont, ImageDraw, ImageOps, ImageFilter
 
-requests_cache.install_cache('http_cache', expire_after=180)
+#requests_cache.install_cache('http_cache', expire_after=180)
 
 with open("configv2.yml", 'r') as ymlfile:
     cfg = yaml.safe_load(ymlfile)
