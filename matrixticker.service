@@ -6,7 +6,7 @@ Wants=network.target
 [Service]
 User=root
 WorkingDirectory=/home/pi/matrixticker
-ExecStart=/home/pi/matrixticker/venv/bin/python3 /home/pi/matrixticker/main.py
+ExecStart=/home/pi/matrixticker/venv/bin/python3 /home/pi/matrixticker/ticker.py
 
 [Install]
 WantedBy=multi-user.target

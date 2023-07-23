@@ -3,3 +3,4 @@ aiohttp
 requests
 pillow
 pyyaml
+requests_cache
