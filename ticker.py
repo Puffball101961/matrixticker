@@ -12,7 +12,7 @@ import requests_cache
 import yaml
 import os
 
-from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions, graphics
+from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 from PIL import Image, ImageFont, ImageDraw, ImageOps, ImageFilter
 
 #requests_cache.install_cache('http_cache', expire_after=180)
