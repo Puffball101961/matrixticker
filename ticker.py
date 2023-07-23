@@ -10,8 +10,9 @@ import sys
 import requests
 import requests_cache
 import yaml
+import os
 
-from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
+from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions, graphics
 from PIL import Image, ImageFont, ImageDraw, ImageOps, ImageFilter
 
 #requests_cache.install_cache('http_cache', expire_after=180)
@@ -19,6 +20,7 @@ from PIL import Image, ImageFont, ImageDraw, ImageOps, ImageFilter
 with open("configv2.yml", 'r') as ymlfile:
     cfg = yaml.safe_load(ymlfile)
 
+# User Configuration
 
 CONFIG_ICON_GAP = cfg['iconGap']
 CONFIG_PRICE_GAP = cfg['priceGap']
@@ -31,19 +33,19 @@ CONFIG_DISPLAY_MODE = cfg['displayMode']
 CONFIG_TOP_MODULES = cfg['topDisplayModules']
 CONFIG_BOTTOM_MODULES = cfg['bottomDisplayModules']
 
-
 CONFIG_CRYPTO_ENABLED = cfg['crypto']['enabled']
+CONFIG_CRYPTO_FIAT = cfg['crypto']['fiat']
+CONFIG_CRYPTO_CURRENCY_PREFIX = cfg['crypto']['currencyPrefix']
 CONFIG_CRYPTO_SYMBOLS = cfg['crypto']['symbols']
-
 
 # Configuration for the matrix
 options = RGBMatrixOptions()
-options.rows = 32
-options.cols = 128
+options.rows = 32 # height of the display
+options.cols = 128 # width of the display
 options.parallel = 1
 options.hardware_mapping = 'adafruit-hat-pwm'  # If you have an Adafruit HAT: 'adafruit-hat'
-#options.pixel_mapper_config = "Rotate:180"
-options.led_rgb_sequence = "RBG"
+#options.pixel_mapper_config = "Rotate:180" # Rotate 180 degrees if required.
+options.led_rgb_sequence = "RBG" # Change to RGB if your matrix has led colors swapped
 
 matrix = RGBMatrix(options = options)
 
@@ -56,8 +58,6 @@ nameFontHalf = ImageFont.load("fonts/pil/5x7.pil")
 priceFontHalf = ImageFont.load("fonts/pil/6x10.pil")
 changeFontHalf = ImageFont.load("fonts/pil/6x10.pil")
 
-
-
 # STARTUP JOBS
 
 # Splash Screen
@@ -65,7 +65,7 @@ splash = Image.new('RGBA', (128,32))
 draw = ImageDraw.Draw(splash)
 draw.text((1,0), "RGB Matrix Ticker", font=nameFont, fill=(255,255,255))
 draw.text((1,10), "by PuffCode", font=nameFont, fill=(255,255,255))
-draw.text((1,20), "v0.2", font=changeFont, fill=(255,255,255))
+draw.text((1,20), "v0.2.1", font=changeFont, fill=(255,255,255))
 matrix.SetImage(splash.convert('RGB'))
 time.sleep(2)
 matrix.Clear()
@@ -79,6 +79,7 @@ matrix.SetImage(test.convert('RGB'))
 
 connected = False
 
+# Test Internet Connectivity
 while not connected:
     try:
         res = requests.get("https://google.com")
@@ -120,7 +121,7 @@ def cryptoModule(mode: str = 'full'):
 
     cryptoToFetch = CONFIG_CRYPTO_SYMBOLS
 
-    res = requests.get(f"https://api.coingecko.com/api/v3/simple/price?ids={','.join(cryptoToFetch)}&vs_currencies=aud&include_24hr_change=true&precision=18")
+    res = requests.get(f"https://api.coingecko.com/api/v3/simple/price?ids={','.join(cryptoToFetch)}&vs_currencies={CONFIG_CRYPTO_FIAT}&include_24hr_change=true&precision=18")
     if res.status_code == 200:
         prices = res.json()
     else:
@@ -139,12 +140,16 @@ def cryptoModule(mode: str = 'full'):
             image = Image.new('RGBA', (1000,32))
             draw = ImageDraw.Draw(image)
             
-            icon = Image.open(f"icons/crypto/{coin}.png")
-            image.paste(icon, (0,0))
+            # Check that the icon exists
+            if os.path.isfile(f"icons/crypto/{coin}.png"):
+                icon = Image.open(f"icons/crypto/{coin}.png")
+                image.paste(icon, (0,0))
+            else:
+                icon = Image.new('RGBA', (0,0))
             
-            price = prices[coin]['aud']
+            price = prices[coin][CONFIG_CRYPTO_FIAT]
             symbol = idSymbolDict[coin]
-            priceChange = round(prices[coin]['aud_24h_change'], 2)
+            priceChange = round(prices[coin][f'{CONFIG_CRYPTO_FIAT}_24h_change'], 2)
 
             if type(price) == float:
                 if price < 1:
@@ -164,7 +169,7 @@ def cryptoModule(mode: str = 'full'):
                 price = price[:-3]
             
             draw.text((icon.width + CONFIG_ICON_GAP ,-1), f"{symbol.upper()}", font=nameFont, fill=(255,255,255))
-            draw.text((icon.width + CONFIG_ICON_GAP ,6), "$" + str(price), font=priceFont, fill=(255,255,255))
+            draw.text((icon.width + CONFIG_ICON_GAP ,6), CONFIG_CRYPTO_CURRENCY_PREFIX + str(price), font=priceFont, fill=(255,255,255))
             
             if priceChange > 0:
                 draw.text((icon.width + CONFIG_ICON_GAP,22), "%" + str(priceChange), font=changeFont, fill=(0,255,0))
@@ -194,10 +199,9 @@ def cryptoModule(mode: str = 'full'):
                 print("Error: Invalid price change value")
                 sys.exit(1)
                 
-            if draw.textlength(f"{symbol.upper()} ${price}", nameFont) < draw.textlength(f"%{priceChange}", changeFont) + 7:
-                image = image.crop((0,0,icon.width + CONFIG_ICON_GAP + draw.textlength(f"%{priceChange}", changeFont)+7,32))
-            else:
-                image = image.crop((0,0,icon.width + CONFIG_ICON_GAP + draw.textlength(f"${price}", priceFont),32))
+            # Crop image to content
+            imgBox = image.getbbox() 
+            image = image.crop(imgBox)
             
             images.append(image)    
         return images
@@ -210,9 +214,9 @@ def cryptoModule(mode: str = 'full'):
             icon.thumbnail((icon.width, 16))
             image.paste(icon, (0,0))
             
-            price = prices[coin]['aud']
+            price = prices[coin][CONFIG_CRYPTO_FIAT]
             symbol = idSymbolDict[coin]
-            priceChange = round(prices[coin]['aud_24h_change'], 2)
+            priceChange = round(prices[coin][f'{CONFIG_CRYPTO_FIAT}_24h_change'], 2)
 
             if type(price) == float:
                 if price < 1:
@@ -232,38 +236,40 @@ def cryptoModule(mode: str = 'full'):
                 price = price[:-3]
             
             draw.text((icon.width + CONFIG_ICON_GAP ,0), f"{symbol.upper()}", font=nameFontHalf, fill=(255,255,255))
-            draw.text((icon.width + CONFIG_ICON_GAP ,6), "$" + str(price), font=priceFontHalf, fill=(255,255,255))
+            draw.text((icon.width + CONFIG_ICON_GAP ,6), CONFIG_CRYPTO_CURRENCY_PREFIX + str(price), font=priceFontHalf, fill=(255,255,255))
             
             if priceChange > 0:
-                draw.text((icon.width + CONFIG_ICON_GAP + draw.textlength("$" + str(price)) + 3,6), "%" + str(priceChange), font=changeFontHalf, fill=(0,255,0))
+                draw.text((icon.width + CONFIG_ICON_GAP + draw.textlength(CONFIG_CRYPTO_CURRENCY_PREFIX + str(price)) + 3,6), "%" + str(priceChange), font=changeFontHalf, fill=(0,255,0))
 
                 dist = draw.textlength(str(priceChange), changeFont)
                 dist += 9
 
-                draw.polygon([(icon.width + CONFIG_ICON_GAP + dist + draw.textlength("$" + str(price)), 12), (icon.width + CONFIG_ICON_GAP + dist + draw.textlength("$" + str(price)) + 3, 7), (icon.width + CONFIG_ICON_GAP + dist + draw.textlength("$" + str(price)) + 6, 12)], fill=(0,255,0))
+                draw.polygon([(icon.width + CONFIG_ICON_GAP + dist + draw.textlength(CONFIG_CRYPTO_CURRENCY_PREFIX + str(price)), 12), (icon.width + CONFIG_ICON_GAP + dist + draw.textlength(CONFIG_CRYPTO_CURRENCY_PREFIX + str(price)) + 3, 7), (icon.width + CONFIG_ICON_GAP + dist + draw.textlength(CONFIG_CRYPTO_CURRENCY_PREFIX + str(price)) + 6, 12)], fill=(0,255,0))
 
             elif priceChange < 0:
-                draw.text((icon.width + CONFIG_ICON_GAP + draw.textlength("$" + str(price)) + 3,6), "%" + str(priceChange)[1:], font=changeFontHalf, fill=(255,0,0))
+                draw.text((icon.width + CONFIG_ICON_GAP + draw.textlength(CONFIG_CRYPTO_CURRENCY_PREFIX + str(price)) + 3,6), "%" + str(priceChange)[1:], font=changeFontHalf, fill=(255,0,0))
 
                 dist = draw.textlength(str(priceChange)[1:], changeFont)
                 dist += 9
 
-                draw.polygon([(icon.width + CONFIG_ICON_GAP + dist + draw.textlength("$" + str(price)), 7), (icon.width + CONFIG_ICON_GAP + dist + draw.textlength("$" + str(price)) + 3, 12), (icon.width + CONFIG_ICON_GAP + dist + draw.textlength("$" + str(price)) + 6, 7)], fill=(255,0,0))
+                draw.polygon([(icon.width + CONFIG_ICON_GAP + dist + draw.textlength(CONFIG_CRYPTO_CURRENCY_PREFIX + str(price)), 7), (icon.width + CONFIG_ICON_GAP + dist + draw.textlength(CONFIG_CRYPTO_CURRENCY_PREFIX + str(price)) + 3, 12), (icon.width + CONFIG_ICON_GAP + dist + draw.textlength(CONFIG_CRYPTO_CURRENCY_PREFIX + str(price)) + 6, 7)], fill=(255,0,0))
 
             elif priceChange == 0:
                 priceChange = 0
-                draw.text((icon.width + CONFIG_ICON_GAP + draw.textlength("$" + str(price)) + 3,6), "%" + str(priceChange), font=changeFontHalf, fill=(0,0,255))
+                draw.text((icon.width + CONFIG_ICON_GAP + draw.textlength(CONFIG_CRYPTO_CURRENCY_PREFIX + str(price)) + 3,6), "%" + str(priceChange), font=changeFontHalf, fill=(0,0,255))
 
                 dist = draw.textlength(str(priceChange), changeFont)
                 dist += 10
 
-                draw.ellipse((icon.width + CONFIG_ICON_GAP + dist + draw.textlength("$" + str(price)), 27, icon.width + CONFIG_ICON_GAP + dist  + draw.textlength("$" + str(price)) + 6, 30), fill=(0,0,255))
+                draw.ellipse((icon.width + CONFIG_ICON_GAP + dist + draw.textlength(CONFIG_CRYPTO_CURRENCY_PREFIX + str(price)), 27, icon.width + CONFIG_ICON_GAP + dist  + draw.textlength(CONFIG_CRYPTO_CURRENCY_PREFIX + str(price)) + 6, 30), fill=(0,0,255))
             else:
                 print("Error: Invalid price change value")
                 sys.exit(1)
-                
-            image = image.crop((0,0,icon.width + CONFIG_ICON_GAP + draw.textlength(f"${price}", priceFontHalf) + draw.textlength(f"%{priceChange}", changeFontHalf)+10,16))
-            image.crop((0,0,image.width, 16))
+                 
+            # Crop image to fit
+            imgBox = image.getbbox() 
+            image = image.crop(imgBox)
+            
             images.append(image)    
         return images
 
@@ -319,6 +325,10 @@ def renderFrames(renderQueue, mode: str = "full"):
 
             time.sleep(0.025)
 
+renderQueue = []
+renderQueueTop = []
+renderQueueBottom = []
+
 while True:    
     # Check if the display should be awake or sleeping
     if time.localtime().tm_hour >= CONFIG_SLEEP_END and time.localtime().tm_hour < CONFIG_SLEEP_START:
@@ -327,13 +337,10 @@ while True:
         matrix.brightness = CONFIG_SLEEP_BRIGHTNESS
 
     if CONFIG_DISPLAY_MODE == "full":
-        renderQueue = []
         if CONFIG_CRYPTO_ENABLED:
             image = cryptoModule()
-            if type(image) == dict:
-                print(image['error'])
-                sys.exit(1)
-            else:
+            if type(image) != dict:
+                renderQueue = []
                 for img in image:
                     renderQueue.append(img)
                 
@@ -346,14 +353,11 @@ while True:
         renderFrames(renderQueue, CONFIG_DISPLAY_MODE)
 
     elif CONFIG_DISPLAY_MODE == "half":
-        renderQueueTop = []
-        renderQueueBottom = []
         if CONFIG_CRYPTO_ENABLED:
             image = cryptoModule('half')
-            if type(image) == dict:
-                print(image['error'])
-                sys.exit(1)
-            else:
+            if type(image) != dict:
+                renderQueueTop = []
+                renderQueueBottom = []
                 if 'crypto' in CONFIG_TOP_MODULES:
                     renderQueueTop = image
                 elif 'crypto' in CONFIG_BOTTOM_MODULES:
