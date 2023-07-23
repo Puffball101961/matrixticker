@@ -11,7 +11,7 @@ import requests
 import requests_cache
 import yaml
 
-from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions, graphics
+from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 from PIL import Image, ImageFont, ImageDraw, ImageOps, ImageFilter
 
 requests_cache.install_cache('http_cache', expire_after=180)
@@ -261,9 +261,8 @@ def cryptoModule(mode: str = 'full'):
             else:
                 print("Error: Invalid price change value")
                 sys.exit(1)
-            
-            image = image.crop((0,0,icon.width + CONFIG_ICON_GAP + draw.textlength(f"${price}", priceFont) + draw.textlength(f"%{priceChange}", changeFontHalf)+7,16))
-            
+                
+            image = image.crop((0,0,icon.width + CONFIG_ICON_GAP + draw.textlength(f"${price}", priceFontHalf) + draw.textlength(f"%{priceChange}", changeFontHalf)+10,16))
             image.crop((0,0,image.width, 16))
             images.append(image)    
         return images
@@ -313,8 +312,8 @@ def renderFrames(renderQueue, mode: str = "full"):
         for i in range(0, preImageTop.width):
             tmp = Image.new('RGBA', (128,32))
 
+            preImageTop = preImageTop.crop((1,0,preImageTop.width,16))
             tmp.paste(preImageTop, (0,0))
-            tmp.paste(preImageBottom, (0,17))
 
             matrix.SetImage(tmp.convert('RGB'))
 
