@@ -27,11 +27,11 @@ To add more functionality, do the following:
 **Crypto Module:**\
 1: Find the crypto you want to add on Coingecko, and locate it's API ID\
 2: Add the CoinGecko ID to the configv2.yml file
-3: Add an icon with maximum dimensions of 32x32px (doesn't have to be square) into icons/crypto, with the same name as the CoinGecko ID
-
+3 (Optional): Add an icon with maximum dimensions of 32x32px (doesn't have to be square) into icons/crypto, with the same name as the CoinGecko ID
 
 ## Contributing
 I will be welcoming and encouraging improvements and extra features to the code. If you want to add your own module or fix one of mine, make a PR!
+If you want to add an icon for a crypto, make a PR!
 
 ## License
 This Open Source software is distributed under the GNU GPLv3 license. It is distributed with no Warranty and I incur no Liability from your use of this software. You may modify this code however you like, and distribute it. Source code must be made available if you are distributing. You are not allowed to create closed source software based on this code. More info can be found at this website: https://choosealicense.com/licenses/gpl-3.0/

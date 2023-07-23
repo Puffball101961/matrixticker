@@ -33,6 +33,8 @@ bottomDisplayModules: []
 
 crypto:
   enabled: True
+  fiat: aud  # Fiat currency to use. Compatible currenncies available at https://api.coingecko.com/api/v3/simple/supported_vs_currencies
+  currencyPrefix: $ # Prefix to show before fiat (dollar, euro, etc.) Probably broken if you don't use $ or letters bcause of the fonts.
   symbols: # Coingecko Coin IDs
     - bitcoin
     - litecoin
