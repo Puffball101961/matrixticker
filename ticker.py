@@ -13,7 +13,11 @@ import yaml
 import os
 import math
 
+# Uncomment line below to emulate the matrix in a web browser. Make sure
+# You comment out the line importing rgbmatrix as well.
 from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions, graphics
+# from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
+
 from PIL import Image, ImageFont, ImageDraw, ImageOps, ImageFilter
 
 #requests_cache.install_cache('http_cache', expire_after=180)
