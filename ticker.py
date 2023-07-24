@@ -75,7 +75,7 @@ splash = Image.new('RGBA', (128,32))
 draw = ImageDraw.Draw(splash)
 draw.text((1,0), "RGB Matrix Ticker", font=nameFont, fill=(255,255,255))
 draw.text((1,10), "by PuffCode", font=nameFont, fill=(255,255,255))
-draw.text((1,20), "v0.2.2", font=changeFont, fill=(255,255,255))
+draw.text((1,20), "v0.2.3", font=changeFont, fill=(255,255,255))
 matrix.SetImage(splash.convert('RGB'))
 time.sleep(2)
 matrix.Clear()
@@ -312,7 +312,7 @@ def renderFrames(renderQueue, mode: str = "full"):
 
             matrix.SetImage(tmp.convert('RGB'))
 
-            time.sleep(0.04)
+            time.sleep(0.02)
     elif mode == 'half':
         topList = renderQueue[0]
         bottomList = renderQueue[1]
@@ -367,7 +367,7 @@ def renderFrames(renderQueue, mode: str = "full"):
 
             matrix.SetImage(tmp.convert('RGB'))
 
-            time.sleep(0.04)
+            time.sleep(0.02)
 
 renderQueue = []
 renderQueueTop = []
