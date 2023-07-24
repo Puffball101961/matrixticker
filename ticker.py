@@ -312,7 +312,7 @@ def renderFrames(renderQueue, mode: str = "full"):
 
             matrix.SetImage(tmp.convert('RGB'))
 
-            time.sleep(0.04)
+            time.sleep(0.02)
     elif mode == 'half':
         topList = renderQueue[0]
         bottomList = renderQueue[1]
@@ -367,7 +367,7 @@ def renderFrames(renderQueue, mode: str = "full"):
 
             matrix.SetImage(tmp.convert('RGB'))
 
-            time.sleep(0.04)
+            time.sleep(0.02)
 
 renderQueue = []
 renderQueueTop = []
