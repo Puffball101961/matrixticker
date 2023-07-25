@@ -40,6 +40,7 @@ CONFIG_BOTTOM_MODULES = cfg['bottomDisplayModules']
 CONFIG_SPEED = cfg['scrollSpeed']
 CONFIG_TOP_SPEED = cfg['topScrollSpeed']
 CONFIG_BOTTOM_SPEED = cfg['bottomScrollSpeed']
+CONFIG_SLEEP_CLOCK = cfg['sleepClock']
 
 
 CONFIG_CRYPTO_ENABLED = cfg['crypto']['enabled']
@@ -75,7 +76,7 @@ splash = Image.new('RGBA', (128,32))
 draw = ImageDraw.Draw(splash)
 draw.text((1,0), "RGB Matrix Ticker", font=nameFont, fill=(255,255,255))
 draw.text((1,10), "by PuffCode", font=nameFont, fill=(255,255,255))
-draw.text((1,20), "v0.2.3", font=changeFont, fill=(255,255,255))
+draw.text((1,20), "v0.2.4", font=changeFont, fill=(255,255,255))
 matrix.SetImage(splash.convert('RGB'))
 time.sleep(2)
 matrix.Clear()
@@ -377,43 +378,63 @@ while True:
     # Check if the display should be awake or sleeping
     if time.localtime().tm_hour >= CONFIG_SLEEP_END and time.localtime().tm_hour < CONFIG_SLEEP_START:
         matrix.brightness = CONFIG_AWAKE_BRIGHTNESS
+        sleeping = False
     else:
         matrix.brightness = CONFIG_SLEEP_BRIGHTNESS
-
-    if CONFIG_DISPLAY_MODE == "full":
-        if CONFIG_CRYPTO_ENABLED:
-            image = cryptoModule()
-            if type(image) != dict:
-                renderQueue = []
-                for img in image:
-                    renderQueue.append(img)
-                
-                
-        # Copy the render queue to the end of itself, so that the queue is rendered CONFIG_MODULE_LOOP times
-        renderQueue = renderQueue * CONFIG_MODULE_LOOP
-            
-        renderQueue.insert(0, Image.new('RGBA', (128,32)))
-
-        renderFrames(renderQueue, CONFIG_DISPLAY_MODE)
-
-    elif CONFIG_DISPLAY_MODE == "half":
-        if CONFIG_CRYPTO_ENABLED:
-            image = cryptoModule('half')
-            if type(image) != dict:
-                renderQueueTop = []
-                renderQueueBottom = []
-                if 'crypto' in CONFIG_TOP_MODULES:
-                    renderQueueTop = image
-                elif 'crypto' in CONFIG_BOTTOM_MODULES:
-                    renderQueueBottom = image
-                else:
-                    renderQueueTop = image
-                
-        # Copy the render queue to the end of itself, so that the queue is rendered CONFIG_MODULE_LOOP times
-        renderQueueTop = renderQueueTop * CONFIG_MODULE_LOOP
-        renderQueueBottom = renderQueueBottom * CONFIG_MODULE_LOOP
+        sleeping = True
         
-        renderQueueTop.insert(0, Image.new('RGBA', (128,32)))
-        renderQueueBottom.insert(0, Image.new('RGBA', (128,32)))
+    print(time.localtime().tm_hour)
 
-        renderFrames([renderQueueTop, renderQueueBottom], CONFIG_DISPLAY_MODE)
+    if matrix.brightness != 0: # Don't display anything if the brightness is 0
+        if CONFIG_SLEEP_CLOCK and sleeping:
+            image = Image.new('RGBA', (128,32))
+            draw = ImageDraw.Draw(image)
+            
+            draw.text((1,0), time.strftime("%I:%M %p"), font=priceFont, fill=(255,255,255))
+            draw.text((1,20), time.strftime("%a %d/%m/%Y"), font=nameFont, fill=(255,255,255))
+            
+            matrix.Clear()
+            matrix.SetImage(image.convert('RGB'))
+            
+            time.sleep(60-time.localtime().tm_sec)
+        
+        elif CONFIG_DISPLAY_MODE == "full":
+            if CONFIG_CRYPTO_ENABLED:
+                image = cryptoModule()
+                if type(image) != dict:
+                    renderQueue = []
+                    for img in image:
+                        renderQueue.append(img)
+                    
+                    
+            # Copy the render queue to the end of itself, so that the queue is rendered CONFIG_MODULE_LOOP times
+            renderQueue = renderQueue * CONFIG_MODULE_LOOP
+                
+            renderQueue.insert(0, Image.new('RGBA', (128,32)))
+
+            renderFrames(renderQueue, CONFIG_DISPLAY_MODE)
+
+        elif CONFIG_DISPLAY_MODE == "half":
+            if CONFIG_CRYPTO_ENABLED:
+                image = cryptoModule('half')
+                if type(image) != dict:
+                    renderQueueTop = []
+                    renderQueueBottom = []
+                    if 'crypto' in CONFIG_TOP_MODULES:
+                        renderQueueTop = image
+                    elif 'crypto' in CONFIG_BOTTOM_MODULES:
+                        renderQueueBottom = image
+                    else:
+                        renderQueueTop = image
+                    
+            # Copy the render queue to the end of itself, so that the queue is rendered CONFIG_MODULE_LOOP times
+            renderQueueTop = renderQueueTop * CONFIG_MODULE_LOOP
+            renderQueueBottom = renderQueueBottom * CONFIG_MODULE_LOOP
+            
+            renderQueueTop.insert(0, Image.new('RGBA', (128,32)))
+            renderQueueBottom.insert(0, Image.new('RGBA', (128,32)))
+
+            renderFrames([renderQueueTop, renderQueueBottom], CONFIG_DISPLAY_MODE)
+    else:
+        time.sleep(30)
+    
