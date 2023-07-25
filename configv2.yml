@@ -18,10 +18,13 @@ awakeBrightness: 75
 sleepBrightness: 10 
 
 # Hour of the day to start sleeping
-sleepStart: 22 
+sleepStart: 21
 
 # Hour of the day to stop sleeping
 sleepEnd: 6 
+
+# Enable to change the display to a clock instead of normal ticker scrolling during sleep
+sleepClock: True
 
 # Display in full or half mode
 displayMode: full
