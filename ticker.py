@@ -380,40 +380,44 @@ while True:
     else:
         matrix.brightness = CONFIG_SLEEP_BRIGHTNESS
 
-    if CONFIG_DISPLAY_MODE == "full":
-        if CONFIG_CRYPTO_ENABLED:
-            image = cryptoModule()
-            if type(image) != dict:
-                renderQueue = []
-                for img in image:
-                    renderQueue.append(img)
+    if matrix.brightness != 0: # Don't display anything if the brightness is 0
+        if CONFIG_DISPLAY_MODE == "full":
+            if CONFIG_CRYPTO_ENABLED:
+                image = cryptoModule()
+                if type(image) != dict:
+                    renderQueue = []
+                    for img in image:
+                        renderQueue.append(img)
+                    
+                    
+            # Copy the render queue to the end of itself, so that the queue is rendered CONFIG_MODULE_LOOP times
+            renderQueue = renderQueue * CONFIG_MODULE_LOOP
                 
-                
-        # Copy the render queue to the end of itself, so that the queue is rendered CONFIG_MODULE_LOOP times
-        renderQueue = renderQueue * CONFIG_MODULE_LOOP
+            renderQueue.insert(0, Image.new('RGBA', (128,32)))
+
+            renderFrames(renderQueue, CONFIG_DISPLAY_MODE)
+
+        elif CONFIG_DISPLAY_MODE == "half":
+            if CONFIG_CRYPTO_ENABLED:
+                image = cryptoModule('half')
+                if type(image) != dict:
+                    renderQueueTop = []
+                    renderQueueBottom = []
+                    if 'crypto' in CONFIG_TOP_MODULES:
+                        renderQueueTop = image
+                    elif 'crypto' in CONFIG_BOTTOM_MODULES:
+                        renderQueueBottom = image
+                    else:
+                        renderQueueTop = image
+                    
+            # Copy the render queue to the end of itself, so that the queue is rendered CONFIG_MODULE_LOOP times
+            renderQueueTop = renderQueueTop * CONFIG_MODULE_LOOP
+            renderQueueBottom = renderQueueBottom * CONFIG_MODULE_LOOP
             
-        renderQueue.insert(0, Image.new('RGBA', (128,32)))
+            renderQueueTop.insert(0, Image.new('RGBA', (128,32)))
+            renderQueueBottom.insert(0, Image.new('RGBA', (128,32)))
 
-        renderFrames(renderQueue, CONFIG_DISPLAY_MODE)
-
-    elif CONFIG_DISPLAY_MODE == "half":
-        if CONFIG_CRYPTO_ENABLED:
-            image = cryptoModule('half')
-            if type(image) != dict:
-                renderQueueTop = []
-                renderQueueBottom = []
-                if 'crypto' in CONFIG_TOP_MODULES:
-                    renderQueueTop = image
-                elif 'crypto' in CONFIG_BOTTOM_MODULES:
-                    renderQueueBottom = image
-                else:
-                    renderQueueTop = image
-                
-        # Copy the render queue to the end of itself, so that the queue is rendered CONFIG_MODULE_LOOP times
-        renderQueueTop = renderQueueTop * CONFIG_MODULE_LOOP
-        renderQueueBottom = renderQueueBottom * CONFIG_MODULE_LOOP
-        
-        renderQueueTop.insert(0, Image.new('RGBA', (128,32)))
-        renderQueueBottom.insert(0, Image.new('RGBA', (128,32)))
-
-        renderFrames([renderQueueTop, renderQueueBottom], CONFIG_DISPLAY_MODE)
+            renderFrames([renderQueueTop, renderQueueBottom], CONFIG_DISPLAY_MODE)
+    else:
+        time.sleep(30)
+    
