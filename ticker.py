@@ -11,8 +11,13 @@ import requests
 import requests_cache
 import yaml
 import os
+import math
 
+# Uncomment line below to emulate the matrix in a web browser. Make sure
+# You comment out the line importing rgbmatrix as well.
+# from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions, graphics
 from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
+
 from PIL import Image, ImageFont, ImageDraw, ImageOps, ImageFilter
 
 #requests_cache.install_cache('http_cache', expire_after=180)
@@ -32,11 +37,17 @@ CONFIG_AWAKE_BRIGHTNESS = cfg['awakeBrightness']
 CONFIG_DISPLAY_MODE = cfg['displayMode']
 CONFIG_TOP_MODULES = cfg['topDisplayModules']
 CONFIG_BOTTOM_MODULES = cfg['bottomDisplayModules']
+CONFIG_SPEED = cfg['scrollSpeed']
+CONFIG_TOP_SPEED = cfg['topScrollSpeed']
+CONFIG_BOTTOM_SPEED = cfg['bottomScrollSpeed']
+CONFIG_SLEEP_CLOCK = cfg['sleepClock']
+
 
 CONFIG_CRYPTO_ENABLED = cfg['crypto']['enabled']
 CONFIG_CRYPTO_FIAT = cfg['crypto']['fiat']
 CONFIG_CRYPTO_CURRENCY_PREFIX = cfg['crypto']['currencyPrefix']
 CONFIG_CRYPTO_SYMBOLS = cfg['crypto']['symbols']
+
 
 # Configuration for the matrix
 options = RGBMatrixOptions()
@@ -65,7 +76,7 @@ splash = Image.new('RGBA', (128,32))
 draw = ImageDraw.Draw(splash)
 draw.text((1,0), "RGB Matrix Ticker", font=nameFont, fill=(255,255,255))
 draw.text((1,10), "by PuffCode", font=nameFont, fill=(255,255,255))
-draw.text((1,20), "v0.2.1", font=changeFont, fill=(255,255,255))
+draw.text((1,20), "v0.2.4", font=changeFont, fill=(255,255,255))
 matrix.SetImage(splash.convert('RGB'))
 time.sleep(2)
 matrix.Clear()
@@ -284,16 +295,25 @@ def renderFrames(renderQueue, mode: str = "full"):
             tmp.paste(image, (preImage.width,0))
             preImage = tmp
         
+        if CONFIG_SPEED == 'slow':
+            scroll = 1
+        elif CONFIG_SPEED == 'normal':
+            scroll = 2
+        elif CONFIG_SPEED == 'fast':
+            scroll = 3
+        else:
+            scroll = 2 # Set to normal if config invalid/ missing
+
         # Render to matrix
-        for i in range(0, preImage.width):
+        for i in range(0, math.ceil(preImage.width/scroll)):
             tmp = Image.new('RGBA', (128,32))
 
-            preImage = preImage.crop((1,0,preImage.width,32))
+            preImage = preImage.crop((scroll,0,preImage.width,32))
             tmp.paste(preImage, (0,0))
 
             matrix.SetImage(tmp.convert('RGB'))
 
-            time.sleep(0.025)
+            time.sleep(0.02)
     elif mode == 'half':
         topList = renderQueue[0]
         bottomList = renderQueue[1]
@@ -314,16 +334,41 @@ def renderFrames(renderQueue, mode: str = "full"):
             tmp.paste(image, (preImageBottom.width,17))
             preImageBottom = tmp    
         
+        if CONFIG_TOP_SPEED == 'slow':
+            topScroll = 1
+        elif CONFIG_TOP_SPEED == 'normal':
+            topScroll = 2
+        elif CONFIG_TOP_SPEED == 'fast':
+            topScroll = 3
+        else:
+            topScroll = 2 # Set to normal if config invalid/ missing
+
+        if CONFIG_BOTTOM_SPEED == 'slow':
+            bottomScroll = 1
+        elif CONFIG_BOTTOM_SPEED == 'normal':
+            bottomScroll = 2
+        elif CONFIG_BOTTOM_SPEED == 'fast':
+            bottomScroll = 3
+        else:
+            bottomScroll = 2 # Set to normal if config invalid/ missing
+
+        if preImageTop.width > preImageBottom.width:
+            width = preImageTop.width
+        else:
+            width = preImageBottom.width
+        
         # Render to matrix
-        for i in range(0, preImageTop.width):
+        for i in range(0, width):
             tmp = Image.new('RGBA', (128,32))
 
-            preImageTop = preImageTop.crop((1,0,preImageTop.width,16))
+            preImageTop = preImageTop.crop((topScroll,0,preImageTop.width,16))
             tmp.paste(preImageTop, (0,0))
+
+            preImageBottom = preImageBottom.crop((bottomScroll,0,preImageBottom.width,16))
 
             matrix.SetImage(tmp.convert('RGB'))
 
-            time.sleep(0.025)
+            time.sleep(0.02)
 
 renderQueue = []
 renderQueueTop = []
@@ -333,43 +378,63 @@ while True:
     # Check if the display should be awake or sleeping
     if time.localtime().tm_hour >= CONFIG_SLEEP_END and time.localtime().tm_hour < CONFIG_SLEEP_START:
         matrix.brightness = CONFIG_AWAKE_BRIGHTNESS
+        sleeping = False
     else:
         matrix.brightness = CONFIG_SLEEP_BRIGHTNESS
-
-    if CONFIG_DISPLAY_MODE == "full":
-        if CONFIG_CRYPTO_ENABLED:
-            image = cryptoModule()
-            if type(image) != dict:
-                renderQueue = []
-                for img in image:
-                    renderQueue.append(img)
-                
-                
-        # Copy the render queue to the end of itself, so that the queue is rendered CONFIG_MODULE_LOOP times
-        renderQueue = renderQueue * CONFIG_MODULE_LOOP
-            
-        renderQueue.insert(0, Image.new('RGBA', (128,32)))
-
-        renderFrames(renderQueue, CONFIG_DISPLAY_MODE)
-
-    elif CONFIG_DISPLAY_MODE == "half":
-        if CONFIG_CRYPTO_ENABLED:
-            image = cryptoModule('half')
-            if type(image) != dict:
-                renderQueueTop = []
-                renderQueueBottom = []
-                if 'crypto' in CONFIG_TOP_MODULES:
-                    renderQueueTop = image
-                elif 'crypto' in CONFIG_BOTTOM_MODULES:
-                    renderQueueBottom = image
-                else:
-                    renderQueueTop = image
-                
-        # Copy the render queue to the end of itself, so that the queue is rendered CONFIG_MODULE_LOOP times
-        renderQueueTop = renderQueueTop * CONFIG_MODULE_LOOP
-        renderQueueBottom = renderQueueBottom * CONFIG_MODULE_LOOP
+        sleeping = True
         
-        renderQueueTop.insert(0, Image.new('RGBA', (128,32)))
-        renderQueueBottom.insert(0, Image.new('RGBA', (128,32)))
+    print(time.localtime().tm_hour)
 
-        renderFrames([renderQueueTop, renderQueueBottom], CONFIG_DISPLAY_MODE)
+    if matrix.brightness != 0: # Don't display anything if the brightness is 0
+        if CONFIG_SLEEP_CLOCK and sleeping:
+            image = Image.new('RGBA', (128,32))
+            draw = ImageDraw.Draw(image)
+            
+            draw.text((1,0), time.strftime("%I:%M %p"), font=priceFont, fill=(255,255,255))
+            draw.text((1,20), time.strftime("%a %d/%m/%Y"), font=nameFont, fill=(255,255,255))
+            
+            matrix.Clear()
+            matrix.SetImage(image.convert('RGB'))
+            
+            time.sleep(60-time.localtime().tm_sec)
+        
+        elif CONFIG_DISPLAY_MODE == "full":
+            if CONFIG_CRYPTO_ENABLED:
+                image = cryptoModule()
+                if type(image) != dict:
+                    renderQueue = []
+                    for img in image:
+                        renderQueue.append(img)
+                    
+                    
+            # Copy the render queue to the end of itself, so that the queue is rendered CONFIG_MODULE_LOOP times
+            renderQueue = renderQueue * CONFIG_MODULE_LOOP
+                
+            renderQueue.insert(0, Image.new('RGBA', (128,32)))
+
+            renderFrames(renderQueue, CONFIG_DISPLAY_MODE)
+
+        elif CONFIG_DISPLAY_MODE == "half":
+            if CONFIG_CRYPTO_ENABLED:
+                image = cryptoModule('half')
+                if type(image) != dict:
+                    renderQueueTop = []
+                    renderQueueBottom = []
+                    if 'crypto' in CONFIG_TOP_MODULES:
+                        renderQueueTop = image
+                    elif 'crypto' in CONFIG_BOTTOM_MODULES:
+                        renderQueueBottom = image
+                    else:
+                        renderQueueTop = image
+                    
+            # Copy the render queue to the end of itself, so that the queue is rendered CONFIG_MODULE_LOOP times
+            renderQueueTop = renderQueueTop * CONFIG_MODULE_LOOP
+            renderQueueBottom = renderQueueBottom * CONFIG_MODULE_LOOP
+            
+            renderQueueTop.insert(0, Image.new('RGBA', (128,32)))
+            renderQueueBottom.insert(0, Image.new('RGBA', (128,32)))
+
+            renderFrames([renderQueueTop, renderQueueBottom], CONFIG_DISPLAY_MODE)
+    else:
+        time.sleep(30)
+    

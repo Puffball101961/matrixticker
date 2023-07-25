@@ -1,9 +1,9 @@
+![The Ticker in action](images/header.webp)
+
 # RGB Matrix Ticker
 RGB Matrix Crypto and Stock Ticker based on a Raspberry Pi
-This project was a part of hackclub.com 's Winter Hardware Wonderland Program.
+Uses a Raspberry Pi 3A+, 2 32x64 RGB matrices to form a 32x128 display, connected to the Pi with the Adafruit RGB Matrix HAT with RTC.
 
-This Project is not 100% complete, and is not foolproof. You will need some knowledge and common sense to get it working.
-I am planning to refine the process when I have time to work on it.
 
 A (nearly) complete rewrite is in progress! The new code architecture will be a lot more modular, allowing for much easier custom additions to the ticker.
 Features expected to come with (or soon after) this update include:
@@ -17,6 +17,12 @@ Features expected to come with (or soon after) this update include:
 - Weather
 - News
 
+## Demo the Software
+Install RGBMatrixEmulator:
+`pip install RGBMatrixEmulator`
+Comment out the rgbmatrix import and uncomment the emulator import
+The emulator is available at http://localhost:8888
+
 ## Make your own
 https://www.instructables.com/Cryptocurrency-and-Stock-Price-Ticker/
 
@@ -26,8 +32,8 @@ To add more functionality, do the following:
 
 **Crypto Module:**\
 1: Find the crypto you want to add on Coingecko, and locate it's API ID\
-2: Add the CoinGecko ID to the configv2.yml file
-3 (Optional): Add an icon with maximum dimensions of 32x32px (doesn't have to be square) into icons/crypto, with the same name as the CoinGecko ID
+2: Add the CoinGecko ID to the configv2.yml file\
+3 (Optional): Add an icon with maximum height of 32px (doesn't have to be square) into icons/crypto, with the same name as the CoinGecko ID
 
 ## Contributing
 I will be welcoming and encouraging improvements and extra features to the code. If you want to add your own module or fix one of mine, make a PR!
