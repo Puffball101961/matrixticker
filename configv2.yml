@@ -26,16 +26,10 @@ sleepEnd: 6
 # Enable to change the display to a clock instead of normal ticker scrolling during sleep
 sleepClock: True
 
-# Display in full or half mode
-displayMode: full
-
 # Module scrolling speed (slow, normal and fast)
 scrollSpeed: slow
 topScrollSpeed: normal
 bottomScrollSpeed: normal
-
-topDisplayModules: [crypto]
-bottomDisplayModules: []
 
 ## Modules
 
@@ -51,3 +45,12 @@ crypto:
     - ripple
     - tezos
     - solana
+
+stocks: # Please note that the API endpoint used updates at the end of every trading day, it is not live.
+  enabled: True
+  fiat: aud
+  apikey: demo # REQUIRED! API Key for alphavantage.co stock API. Completely free to obtain.
+  symbols: # Stock Symbols
+    - AAPL
+    - MSFT
+    - AMZN
