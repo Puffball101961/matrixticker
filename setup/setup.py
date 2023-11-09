@@ -14,9 +14,6 @@ import requests
 
 from PIL import Image, ImageFont, ImageDraw
 
-# Setup Configs
-ssid = "MatrixTicker"
-psk = "1234567890"
 
 # Configuration for the matrix
 options = RGBMatrixOptions()
@@ -49,27 +46,6 @@ try:
 except requests.ConnectionError:
     connected = False
 
-if connected:
-    matrix.Clear()
-    splash = Image.new('RGBA', (128,32))
-    draw = ImageDraw.Draw(splash)
-    icon = Image.open(f"installing.png")
-    icon.thumbnail((128,32))
-    splash.paste(icon, (0,0))
-    matrix.SetImage(splash.convert('RGB'))
-    subprocess.call("git clone https://github.com/Puffball101961/matrixticker.git /home/pi/matrixticker", shell=True)
-    subprocess.call("chmod +x /home/pi/matrixticker/install.sh", shell=True)
-    subprocess.call("sudo /home/pi/matrixticker/install.sh", shell=True)
-    matrix.Clear()
-    splash = Image.new('RGBA', (128,32))
-    draw = ImageDraw.Draw(splash)
-    icon = Image.open(f"restarting.png")
-    icon.thumbnail((128,32))
-    splash.paste(icon, (0,0))
-    matrix.SetImage(splash.convert('RGB'))
-    time.sleep(4)
-    subprocess.call("sudo reboot", shell=True)
-
 if not connected:
     splash = Image.new('RGBA', (128,32))
     draw = ImageDraw.Draw(splash)
@@ -101,6 +77,16 @@ if not connected:
         splash.paste(icon, (0,0))
         matrix.SetImage(splash.convert('RGB'))
         time.sleep(4)
+        matrix.Clear()
+        splash = Image.new('RGBA', (128,32))
+        draw = ImageDraw.Draw(splash)
+        icon = Image.open(f"installing.png")
+        icon.thumbnail((128,32))
+        splash.paste(icon, (0,0))
+        matrix.SetImage(splash.convert('RGB'))
+        subprocess.call("git clone https://github.com/Puffball101961/matrixticker.git /home/pi/matrixticker", shell=True)
+        subprocess.call("chmod +x /home/pi/matrixticker/install.sh", shell=True)
+        subprocess.call("sudo /home/pi/matrixticker/install.sh", shell=True)
         matrix.Clear()
         splash = Image.new('RGBA', (128,32))
         draw = ImageDraw.Draw(splash)
