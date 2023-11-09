@@ -1,0 +1,10 @@
+[Unit]
+Description=RGBMatrix Ticker Service (Setup)
+
+[Service]
+User=root
+WorkingDirectory=/home/pi/setup
+ExecStart=python3 /home/pi/setup/setup.py
+
+[Install]
+WantedBy=multi-user.target
