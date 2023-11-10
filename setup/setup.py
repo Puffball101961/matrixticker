@@ -53,7 +53,7 @@ def install():
     matrix.SetImage(splash.convert('RGB'))
     subprocess.call("sudo git clone https://github.com/Puffball101961/matrixticker.git /home/pi/matrixticker", shell=True)
     subprocess.call("sudo git checkout unstable", cwd="/home/pi/matrixticker",shell=True)
-    subprocess.call("chmod +x /home/pi/matrixticker/install.sh", shell=True)
+    subprocess.call("sudo chmod +x /home/pi/matrixticker/install.sh", shell=True)
     subprocess.call("sudo /home/pi/matrixticker/install.sh", cwd="/home/pi/matrixticker",shell=True)
     matrix.Clear()
     splash = Image.new('RGBA', (128,32))
