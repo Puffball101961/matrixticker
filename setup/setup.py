@@ -51,7 +51,7 @@ def install():
     icon.thumbnail((128,32))
     splash.paste(icon, (0,0))
     matrix.SetImage(splash.convert('RGB'))
-    subprocess.call("git clone https://github.com/Puffball101961/matrixticker.git /home/pi/matrixticker", shell=True)
+    subprocess.call("sudo git clone https://github.com/Puffball101961/matrixticker.git /home/pi/matrixticker", shell=True)
     subprocess.call("sudo git checkout unstable", cwd="/home/pi/matrixticker",shell=True)
     subprocess.call("chmod +x /home/pi/matrixticker/install.sh", shell=True)
     subprocess.call("sudo /home/pi/matrixticker/install.sh", cwd="/home/pi/matrixticker",shell=True)
