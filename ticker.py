@@ -34,10 +34,7 @@ CONFIG_SLEEP_START = cfg['sleepStart']
 CONFIG_SLEEP_BRIGHTNESS = cfg['sleepBrightness']
 CONFIG_SLEEP_END = cfg['sleepEnd']
 CONFIG_AWAKE_BRIGHTNESS = cfg['awakeBrightness']
-CONFIG_TOP_MODULES = cfg['topDisplayModules']
-CONFIG_BOTTOM_MODULES = cfg['bottomDisplayModules']
 CONFIG_SPEED = cfg['scrollSpeed']
-CONFIG_TOP_SPEED = cfg['topScrollSpeed']
 CONFIG_BOTTOM_SPEED = cfg['bottomScrollSpeed']
 CONFIG_SLEEP_CLOCK = cfg['sleepClock']
 
@@ -258,8 +255,6 @@ def renderFrames(renderQueue):
         time.sleep(0.02)
         
 renderQueue = []
-renderQueueTop = []
-renderQueueBottom = []
 
 while True:    
     # Check if the display should be awake or sleeping
