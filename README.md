@@ -4,8 +4,8 @@
 RGB Matrix Crypto and Stock Ticker based on a Raspberry Pi
 Uses a Raspberry Pi 3A+, 2 32x64 RGB matrices to form a 32x128 display, connected to the Pi with the Adafruit RGB Matrix HAT with RTC.
 
-# Development Temporarily Paused
-Little to no updates will be pushed during this time due to studying for VCE exams. Expect development to resume December 2023/January 2024
+## NEW! MatrixTicker OS Experimental
+Check out the new Experimental Release of MatrixTicker OS in the releases tab. Currently based off the Dev branch, however as stability is confirmed and stuff is fixed and tuned the custom Raspberry Pi OS image will be available for use on the Main branch!
 
 A (nearly) complete rewrite is in progress! The new code architecture will be a lot more modular, allowing for much easier custom additions to the ticker.
 Features expected to come with (or soon after) this update include:
