@@ -34,11 +34,7 @@ CONFIG_SLEEP_START = cfg['sleepStart']
 CONFIG_SLEEP_BRIGHTNESS = cfg['sleepBrightness']
 CONFIG_SLEEP_END = cfg['sleepEnd']
 CONFIG_AWAKE_BRIGHTNESS = cfg['awakeBrightness']
-CONFIG_TOP_MODULES = cfg['topDisplayModules']
-CONFIG_BOTTOM_MODULES = cfg['bottomDisplayModules']
 CONFIG_SPEED = cfg['scrollSpeed']
-CONFIG_TOP_SPEED = cfg['topScrollSpeed']
-CONFIG_BOTTOM_SPEED = cfg['bottomScrollSpeed']
 CONFIG_SLEEP_CLOCK = cfg['sleepClock']
 
 
@@ -47,8 +43,6 @@ CONFIG_CRYPTO_FIAT = cfg['crypto']['fiat']
 CONFIG_CRYPTO_CURRENCY_PREFIX = cfg['crypto']['currencyPrefix']
 CONFIG_CRYPTO_SYMBOLS = cfg['crypto']['symbols']
 
-CONFIG_STOCKS_APIKEY = cfg['stocks']['apikey']
-CONFIG_STOCKS_SYMBOLS = cfg['stocks']['symbols']
 
 # Configuration for the matrix
 options = RGBMatrixOptions()
@@ -213,20 +207,6 @@ def cryptoModule():
         images.append(image)    
     return images
     
-# Stock Module
-def stockModule():
-    # API Calls
-    
-    stocksToFetch = CONFIG_STOCKS_SYMBOLS
-    
-    prices = {}
-    
-    # res = requests.get(f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={stocksToFetch}&apikey={CONFIG_STOCKS_APIKEY}")
-    for stock in stocksToFetch:
-        res = requests.get(f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={stocksToFetch[stock]}&apikey=UDRXEAVCRQ44R7IE") # TEMPORARY!
-        prices[stock] = res.json()["Global Quote"]["05. price"]
-    
-    
 def renderFrames(renderQueue):
     # Join render queue together
     preImage = Image.new('RGBA', (10,32))
@@ -256,10 +236,8 @@ def renderFrames(renderQueue):
         matrix.SetImage(tmp.convert('RGB'))
 
         time.sleep(0.02)
-        
+    
 renderQueue = []
-renderQueueTop = []
-renderQueueBottom = []
 
 while True:    
     # Check if the display should be awake or sleeping
@@ -292,12 +270,13 @@ while True:
                 for img in image:
                     renderQueue.append(img)
                 
-            # Copy the render queue to the end of itself, so that the queue is rendered CONFIG_MODULE_LOOP times
-            renderQueue = renderQueue * CONFIG_MODULE_LOOP
                 
-            renderQueue.insert(0, Image.new('RGBA', (128,32)))
+        # Copy the render queue to the end of itself, so that the queue is rendered CONFIG_MODULE_LOOP times
+        renderQueue = renderQueue * CONFIG_MODULE_LOOP
+            
+        renderQueue.insert(0, Image.new('RGBA', (128,32)))
 
-            renderFrames(renderQueue)
+        renderFrames(renderQueue)
     else:
         time.sleep(30)
     

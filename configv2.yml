@@ -28,8 +28,6 @@ sleepClock: True
 
 # Module scrolling speed (slow, normal and fast)
 scrollSpeed: slow
-topScrollSpeed: normal
-bottomScrollSpeed: normal
 
 ## Modules
 

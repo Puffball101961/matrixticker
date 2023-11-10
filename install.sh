@@ -26,3 +26,6 @@ if [ "$zone" != "" ]; then
 else
     echo "[ERROR] Timezone is empty" >> "$logFile"
 fi
+
+echo "Fix Permissions of Home Folder"
+sudo chown -R pi:pi /home/pi
