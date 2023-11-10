@@ -5,6 +5,9 @@ sudo apt-get update && sudo apt-get upgrade -y
 echo "Installing Dependencies"
 python3 -m pip install -r requirements.txt
 
+echo "Expanding Root Filesystem"
+sudo raspi-config nonint do_expand_rootfs
+
 echo "Disabling setup service"
 sudo systemctl disable matrixticker-setup
 
