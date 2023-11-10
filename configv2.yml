@@ -27,7 +27,7 @@ sleepEnd: 6
 sleepClock: True
 
 # Module scrolling speed (slow, normal and fast)
-scrollSpeed: slow []
+scrollSpeed: slow
 
 ## Modules
 
@@ -43,3 +43,12 @@ crypto:
     - ripple
     - tezos
     - solana
+
+stocks: # Please note that the API endpoint used updates at the end of every trading day, it is not live.
+  enabled: True
+  fiat: aud
+  apikey: demo # REQUIRED! API Key for alphavantage.co stock API. Completely free to obtain.
+  symbols: # Stock Symbols
+    - AAPL
+    - MSFT
+    - AMZN
