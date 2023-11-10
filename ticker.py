@@ -15,8 +15,8 @@ import math
 
 # Uncomment line below to emulate the matrix in a web browser. Make sure
 # You comment out the line importing rgbmatrix as well.
-# from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions, graphics
-from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
+from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions, graphics
+#from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 
 from PIL import Image, ImageFont, ImageDraw, ImageOps, ImageFilter
 
@@ -88,11 +88,19 @@ while not connected:
         if res.status_code == 200:
             connected = True
         else:
+            matrix.Clear()
+            test = Image.new('RGBA', (128,32))
+            draw = ImageDraw.Draw(test)
+            draw.text((1,10), "Connecting...", font=nameFont, fill=(255,255,255))
             draw.line((2,20,10,28), fill=(255,0,0), width=2)
             draw.line((10,21,2,29), fill=(255,0,0), width=2)
             draw.text((16,20), "Failed, retrying...", font=ImageFont.load('fonts/pil/5x8.pil'), fill=(255,255,255))
             matrix.SetImage(test.convert('RGB'))          
     except:
+        matrix.Clear()
+        test = Image.new('RGBA', (128,32))
+        draw = ImageDraw.Draw(test)
+        draw.text((1,10), "Connecting...", font=nameFont, fill=(255,255,255))
         draw.line((2,20,10,28), fill=(255,0,0), width=2)
         draw.line((10,21,2,29), fill=(255,0,0), width=2)
         draw.text((16,20), "Failed, retrying...", font=ImageFont.load('fonts/pil/5x8.pil'), fill=(255,255,255))
@@ -100,7 +108,9 @@ while not connected:
     time.sleep(5)
 
 matrix.Clear()
-
+test = Image.new('RGBA', (128,32))
+draw = ImageDraw.Draw(test)
+draw.text((1,10), "Connecting...", font=nameFont, fill=(255,255,255))
 draw.line((2,22,6,26), fill=(0,255,0), width=2)
 draw.line((12,20,6,26), fill=(0,255,0), width=2)
 draw.text((16,20), "Connected", font=ImageFont.load('fonts/pil/5x8.pil'), fill=(255,255,255))
