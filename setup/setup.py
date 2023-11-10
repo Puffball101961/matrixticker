@@ -40,16 +40,10 @@ try:
         connected = True
 except requests.ConnectionError:
     connected = False
+    
+time.sleep(4)
 
-if connected:
-    matrix.Clear()
-    splash = Image.new('RGBA', (128,32))
-    draw = ImageDraw.Draw(splash)
-    icon = Image.open(f"connected.png")
-    icon.thumbnail((128,32))
-    splash.paste(icon, (0,0))
-    matrix.SetImage(splash.convert('RGB'))
-    time.sleep(4)
+def install():
     matrix.Clear()
     splash = Image.new('RGBA', (128,32))
     draw = ImageDraw.Draw(splash)
@@ -70,6 +64,17 @@ if connected:
     matrix.SetImage(splash.convert('RGB'))
     time.sleep(4)
     subprocess.call("sudo reboot", shell=True)
+
+if connected:
+    matrix.Clear()
+    splash = Image.new('RGBA', (128,32))
+    draw = ImageDraw.Draw(splash)
+    icon = Image.open(f"connected.png")
+    icon.thumbnail((128,32))
+    splash.paste(icon, (0,0))
+    matrix.SetImage(splash.convert('RGB'))
+    time.sleep(4)
+    install()
 
 if not connected:
     splash = Image.new('RGBA', (128,32))
@@ -102,26 +107,7 @@ if not connected:
         splash.paste(icon, (0,0))
         matrix.SetImage(splash.convert('RGB'))
         time.sleep(4)
-        matrix.Clear()
-        splash = Image.new('RGBA', (128,32))
-        draw = ImageDraw.Draw(splash)
-        icon = Image.open(f"installing.png")
-        icon.thumbnail((128,32))
-        splash.paste(icon, (0,0))
-        matrix.SetImage(splash.convert('RGB'))
-        subprocess.call("git clone https://github.com/Puffball101961/matrixticker.git /home/pi/matrixticker", shell=True)
-        subprocess.call("sudo git checkout unstable", cwd="/home/pi/matrixticker",shell=True)
-        subprocess.call("chmod +x /home/pi/matrixticker/install.sh", shell=True)
-        subprocess.call("sudo /home/pi/matrixticker/install.sh", cwd="/home/pi/matrixticker",shell=True)
-        matrix.Clear()
-        splash = Image.new('RGBA', (128,32))
-        draw = ImageDraw.Draw(splash)
-        icon = Image.open(f"restarting.png")
-        icon.thumbnail((128,32))
-        splash.paste(icon, (0,0))
-        matrix.SetImage(splash.convert('RGB'))
-        time.sleep(4)
-        subprocess.call("sudo reboot", shell=True)
+        install()
     if not connected:
         matrix.Clear()
         splash = Image.new('RGBA', (128,32))
