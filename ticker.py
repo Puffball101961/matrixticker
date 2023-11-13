@@ -124,7 +124,7 @@ if not connected:
     # Wifi reconfiguration (ONLY FOR CUSTOM IMAGE)
     splash = Image.new('RGBA', (128,32))
     draw = ImageDraw.Draw(splash)
-    icon = Image.open(f"net_setup.png")
+    icon = Image.open(f"icons/boot/net_setup.png")
     icon.thumbnail((128,32))
     splash.paste(icon, (0,0))
     matrix.SetImage(splash.convert('RGB'))
