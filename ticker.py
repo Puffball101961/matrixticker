@@ -5,6 +5,8 @@
 # For more information, refer to the LICENSE file present in the root
 # directory of the repository.
 
+# TODO: Network checks and reconfiguration during operation, not just at boot.
+
 import time
 import sys
 import requests
