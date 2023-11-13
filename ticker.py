@@ -23,29 +23,7 @@ from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 
 from PIL import Image, ImageFont, ImageDraw, ImageOps, ImageFilter
 
-#requests_cache.install_cache('http_cache', expire_after=180)
-
-with open("configv2.yml", 'r') as ymlfile:
-    cfg = yaml.safe_load(ymlfile)
-
-# User Configuration
-
-CONFIG_ICON_GAP = cfg['iconGap']
-CONFIG_PRICE_GAP = cfg['priceGap']
-CONFIG_MODULE_LOOP = cfg['moduleLoop']
-CONFIG_SLEEP_START = cfg['sleepStart']
-CONFIG_SLEEP_BRIGHTNESS = cfg['sleepBrightness']
-CONFIG_SLEEP_END = cfg['sleepEnd']
-CONFIG_AWAKE_BRIGHTNESS = cfg['awakeBrightness']
-CONFIG_SPEED = cfg['scrollSpeed']
-CONFIG_SLEEP_CLOCK = cfg['sleepClock']
-CONFIG_NETWORK_RETRIES = cfg['networkRetries']
-
-CONFIG_CRYPTO_ENABLED = cfg['crypto']['enabled']
-CONFIG_CRYPTO_FIAT = cfg['crypto']['fiat']
-CONFIG_CRYPTO_CURRENCY_PREFIX = cfg['crypto']['currencyPrefix']
-CONFIG_CRYPTO_SYMBOLS = cfg['crypto']['symbols']
-
+configVersion = 1
 
 # Configuration for the matrix
 options = RGBMatrixOptions()
@@ -57,6 +35,87 @@ options.hardware_mapping = 'adafruit-hat-pwm'  # If you have an Adafruit HAT: 'a
 options.led_rgb_sequence = "RBG" # Change to RGB if your matrix has led colors swapped
 
 matrix = RGBMatrix(options = options)
+
+try:
+    with open("config.yml", 'r') as ymlfile:
+        cfg = yaml.safe_load(ymlfile)
+except FileNotFoundError: # If config file isn't present, create it from sample.config.yml
+    with open('sample.config.yml','r') as sampleConfig, open('config.yml','a') as configFile: 
+        for line in sampleConfig:
+            configFile.write(line)
+    with open("config.yml", 'r') as ymlfile:
+        cfg = yaml.safe_load(ymlfile)
+except:
+    with open("sample.config.yml", 'r') as ymlfile:
+        cfg = yaml.safe_load(ymlfile) # If another error detected, give up and load sample.config.yml
+
+# Check config version
+if cfg['configVersion'] != configVersion:
+    splash = Image.new('RGBA', (128,32))
+    draw = ImageDraw.Draw(splash)
+    icon = Image.open(f"icons/boot/invalid_config.png")
+    icon.thumbnail((128,32))
+    splash.paste(icon, (0,0))
+    matrix.SetImage(splash.convert('RGB'))
+    time.sleep(5)
+    
+    # Load sample config
+    with open("sample.config.yml", 'r') as ymlfile:
+        cfg = yaml.safe_load(ymlfile)
+    if cfg['configVersion'] != configVersion: # The sample config is also broken
+        print("Error: Fatal error loading config.")
+        splash = Image.new('RGBA', (128,32))
+        draw = ImageDraw.Draw(splash)
+        icon = Image.open(f"icons/boot/broken_config_fatal.png")
+        icon.thumbnail((128,32))
+        splash.paste(icon, (0,0))
+        matrix.SetImage(splash.convert('RGB'))
+        while True:
+            time.sleep(1)
+
+# User Configuration
+i = 0
+while True:
+    i += 1
+    try:
+        CONFIG_ICON_GAP = cfg['iconGap']
+        CONFIG_PRICE_GAP = cfg['priceGap']
+        CONFIG_MODULE_LOOP = cfg['moduleLoop']
+        CONFIG_SLEEP_START = cfg['sleepStart']
+        CONFIG_SLEEP_BRIGHTNESS = cfg['sleepBrightness']
+        CONFIG_SLEEP_END = cfg['sleepEnd']
+        CONFIG_AWAKE_BRIGHTNESS = cfg['awakeBrightness']
+        CONFIG_SPEED = cfg['scrollSpeed']
+        CONFIG_SLEEP_CLOCK = cfg['sleepClock']
+        CONFIG_NETWORK_RETRIES = cfg['networkRetries']
+
+        CONFIG_CRYPTO_ENABLED = cfg['crypto']['enabled']
+        CONFIG_CRYPTO_FIAT = cfg['crypto']['fiat']
+        CONFIG_CRYPTO_CURRENCY_PREFIX = cfg['crypto']['currencyPrefix']
+        CONFIG_CRYPTO_SYMBOLS = cfg['crypto']['symbols']
+    except KeyError:
+        if i == 1:
+            splash = Image.new('RGBA', (128,32))
+            draw = ImageDraw.Draw(splash)
+            icon = Image.open(f"icons/boot/invalid_config.png")
+            icon.thumbnail((128,32))
+            splash.paste(icon, (0,0))
+            matrix.SetImage(splash.convert('RGB'))
+            time.sleep(5)
+            # Load sample config
+            with open("sample.config.yml", 'r') as ymlfile:
+                cfg = yaml.safe_load(ymlfile)
+            continue
+        else:
+            splash = Image.new('RGBA', (128,32))
+            draw = ImageDraw.Draw(splash)
+            icon = Image.open(f"icons/boot/broken_config_fatal.png")
+            icon.thumbnail((128,32))
+            splash.paste(icon, (0,0))
+            matrix.SetImage(splash.convert('RGB'))
+            while True:
+                time.sleep(1)
+    break
 
 # Fonts
 nameFont = ImageFont.load("fonts/pil/6x10.pil")
@@ -70,17 +129,10 @@ splash = Image.new('RGBA', (128,32))
 draw = ImageDraw.Draw(splash)
 draw.text((1,0), "RGB Matrix Ticker", font=nameFont, fill=(255,255,255))
 draw.text((1,10), "by PuffCode", font=nameFont, fill=(255,255,255))
-draw.text((1,20), "v0.3", font=changeFont, fill=(255,255,255))
+draw.text((1,20), "v0.3.1", font=changeFont, fill=(255,255,255))
 matrix.SetImage(splash.convert('RGB'))
 time.sleep(2)
 matrix.Clear()
-
-# Test Network Connection
-# test = Image.new('RGBA', (128,32))
-# draw = ImageDraw.Draw(test)
-# draw.text((1,10), "Connecting...", font=nameFont, fill=(255,255,255))
-
-# matrix.SetImage(test.convert('RGB'))
 
 # Test Network Connection
 splash = Image.new('RGBA', (128,32))
