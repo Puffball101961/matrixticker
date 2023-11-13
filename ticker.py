@@ -257,8 +257,6 @@ while True:
     else:
         matrix.brightness = CONFIG_SLEEP_BRIGHTNESS
         sleeping = True
-        
-    print(time.localtime().tm_hour)
 
     if matrix.brightness != 0: # Don't display anything if the brightness is 0
         if CONFIG_SLEEP_CLOCK and sleeping:
@@ -272,21 +270,21 @@ while True:
             matrix.SetImage(image.convert('RGB'))
             
             time.sleep(60-time.localtime().tm_sec)
-        
-        if CONFIG_CRYPTO_ENABLED:
-            image = cryptoModule()
-            if type(image) != dict:
-                renderQueue = []
-                for img in image:
-                    renderQueue.append(img)
+        else:
+            if CONFIG_CRYPTO_ENABLED:
+                image = cryptoModule()
+                if type(image) != dict:
+                    renderQueue = []
+                    for img in image:
+                        renderQueue.append(img)
                 
                 
-        # Copy the render queue to the end of itself, so that the queue is rendered CONFIG_MODULE_LOOP times
-        renderQueue = renderQueue * CONFIG_MODULE_LOOP
-            
-        renderQueue.insert(0, Image.new('RGBA', (128,32)))
+            # Copy the render queue to the end of itself, so that the queue is rendered CONFIG_MODULE_LOOP times
+            renderQueue = renderQueue * CONFIG_MODULE_LOOP
+                
+            renderQueue.insert(0, Image.new('RGBA', (128,32)))
 
-        renderFrames(renderQueue)
+            renderFrames(renderQueue)
     else:
         time.sleep(30)
     
