@@ -5,6 +5,8 @@
 # For more information, refer to the LICENSE file present in the root
 # directory of the repository.
 
+# TODO: Network checks and reconfiguration during operation, not just at boot.
+
 import time
 import sys
 import requests
@@ -12,11 +14,12 @@ import requests_cache
 import yaml
 import os
 import math
+import subprocess
 
 # Uncomment line below to emulate the matrix in a web browser. Make sure
 # You comment out the line importing rgbmatrix as well.
-# from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions, graphics
 from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
+#from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 
 from PIL import Image, ImageFont, ImageDraw, ImageOps, ImageFilter
 
@@ -36,7 +39,7 @@ CONFIG_SLEEP_END = cfg['sleepEnd']
 CONFIG_AWAKE_BRIGHTNESS = cfg['awakeBrightness']
 CONFIG_SPEED = cfg['scrollSpeed']
 CONFIG_SLEEP_CLOCK = cfg['sleepClock']
-
+CONFIG_NETWORK_RETRIES = cfg['networkRetries']
 
 CONFIG_CRYPTO_ENABLED = cfg['crypto']['enabled']
 CONFIG_CRYPTO_FIAT = cfg['crypto']['fiat']
@@ -67,45 +70,76 @@ splash = Image.new('RGBA', (128,32))
 draw = ImageDraw.Draw(splash)
 draw.text((1,0), "RGB Matrix Ticker", font=nameFont, fill=(255,255,255))
 draw.text((1,10), "by PuffCode", font=nameFont, fill=(255,255,255))
-draw.text((1,20), "v0.2.4", font=changeFont, fill=(255,255,255))
+draw.text((1,20), "v0.3", font=changeFont, fill=(255,255,255))
 matrix.SetImage(splash.convert('RGB'))
 time.sleep(2)
 matrix.Clear()
 
 # Test Network Connection
-test = Image.new('RGBA', (128,32))
-draw = ImageDraw.Draw(test)
-draw.text((1,10), "Connecting...", font=nameFont, fill=(255,255,255))
+# test = Image.new('RGBA', (128,32))
+# draw = ImageDraw.Draw(test)
+# draw.text((1,10), "Connecting...", font=nameFont, fill=(255,255,255))
 
-matrix.SetImage(test.convert('RGB'))
+# matrix.SetImage(test.convert('RGB'))
+
+# Test Network Connection
+splash = Image.new('RGBA', (128,32))
+draw = ImageDraw.Draw(splash)
+icon = Image.open(f"icons/boot/checking.png")
+icon.thumbnail((128,32))
+splash.paste(icon, (0,0))
+matrix.SetImage(splash.convert('RGB'))
 
 connected = False
+retries = 0
 
 # Test Internet Connectivity
 while not connected:
+    if retries >= CONFIG_NETWORK_RETRIES:
+        break
     try:
         res = requests.get("https://google.com")
         if res.status_code == 200:
-            connected = True
-        else:
-            draw.line((2,20,10,28), fill=(255,0,0), width=2)
-            draw.line((10,21,2,29), fill=(255,0,0), width=2)
-            draw.text((16,20), "Failed, retrying...", font=ImageFont.load('fonts/pil/5x8.pil'), fill=(255,255,255))
-            matrix.SetImage(test.convert('RGB'))          
+            connected = True         
     except:
-        draw.line((2,20,10,28), fill=(255,0,0), width=2)
-        draw.line((10,21,2,29), fill=(255,0,0), width=2)
-        draw.text((16,20), "Failed, retrying...", font=ImageFont.load('fonts/pil/5x8.pil'), fill=(255,255,255))
-        matrix.SetImage(test.convert('RGB'))     
+        pass
     time.sleep(5)
-
+    retries += 1
 matrix.Clear()
 
-draw.line((2,22,6,26), fill=(0,255,0), width=2)
-draw.line((12,20,6,26), fill=(0,255,0), width=2)
-draw.text((16,20), "Connected", font=ImageFont.load('fonts/pil/5x8.pil'), fill=(255,255,255))
-draw.text((1,10), "Connecting...", font=nameFont, fill=(255,255,255))
-matrix.SetImage(test.convert('RGB'))
+if connected:
+    splash = Image.new('RGBA', (128,32))
+    draw = ImageDraw.Draw(splash)
+    icon = Image.open(f"icons/boot/connected.png")
+    icon.thumbnail((128,32))
+    splash.paste(icon, (0,0))
+    matrix.SetImage(splash.convert('RGB'))
+if not connected:
+    splash = Image.new('RGBA', (128,32))
+    draw = ImageDraw.Draw(splash)
+    icon = Image.open(f"icons/boot/no_internet.png")
+    icon.thumbnail((128,32))
+    splash.paste(icon, (0,0))
+    matrix.SetImage(splash.convert('RGB'))
+    time.sleep(5)
+    
+    # Wifi reconfiguration (ONLY FOR CUSTOM IMAGE)
+    splash = Image.new('RGBA', (128,32))
+    draw = ImageDraw.Draw(splash)
+    icon = Image.open(f"icons/boot/net_setup.png")
+    icon.thumbnail((128,32))
+    splash.paste(icon, (0,0))
+    matrix.SetImage(splash.convert('RGB'))
+    subprocess.call("sudo wifi-connect --portal-ssid 'MatrixTicker WiFi Setup'", shell=True)
+    matrix.Clear()
+    splash = Image.new('RGBA', (128,32))
+    draw = ImageDraw.Draw(splash)
+    icon = Image.open(f"icons/boot/restarting.png")
+    icon.thumbnail((128,32))
+    splash.paste(icon, (0,0))
+    matrix.SetImage(splash.convert('RGB'))
+    subprocess.call("sudo systemctl restart matrixticker'", shell=True)
+    sys.exit(0) # Shouldn't be needed
 
 time.sleep(2)
 
@@ -247,8 +281,6 @@ while True:
     else:
         matrix.brightness = CONFIG_SLEEP_BRIGHTNESS
         sleeping = True
-        
-    print(time.localtime().tm_hour)
 
     if matrix.brightness != 0: # Don't display anything if the brightness is 0
         if CONFIG_SLEEP_CLOCK and sleeping:
@@ -262,21 +294,21 @@ while True:
             matrix.SetImage(image.convert('RGB'))
             
             time.sleep(60-time.localtime().tm_sec)
-        
-        if CONFIG_CRYPTO_ENABLED:
-            image = cryptoModule()
-            if type(image) != dict:
-                renderQueue = []
-                for img in image:
-                    renderQueue.append(img)
+        else:
+            if CONFIG_CRYPTO_ENABLED:
+                image = cryptoModule()
+                if type(image) != dict:
+                    renderQueue = []
+                    for img in image:
+                        renderQueue.append(img)
                 
                 
-        # Copy the render queue to the end of itself, so that the queue is rendered CONFIG_MODULE_LOOP times
-        renderQueue = renderQueue * CONFIG_MODULE_LOOP
-            
-        renderQueue.insert(0, Image.new('RGBA', (128,32)))
+            # Copy the render queue to the end of itself, so that the queue is rendered CONFIG_MODULE_LOOP times
+            renderQueue = renderQueue * CONFIG_MODULE_LOOP
+                
+            renderQueue.insert(0, Image.new('RGBA', (128,32)))
 
-        renderFrames(renderQueue)
+            renderFrames(renderQueue)
     else:
         time.sleep(30)
     
