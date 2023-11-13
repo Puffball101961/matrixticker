@@ -29,6 +29,9 @@ sleepClock: True
 # Module scrolling speed (slow, normal and fast)
 scrollSpeed: slow
 
+# Maxmimum number of times to attempt to test network connectivity
+networkRetries: 5
+
 ## Modules
 
 crypto:
