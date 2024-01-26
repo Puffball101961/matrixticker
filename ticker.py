@@ -10,7 +10,6 @@
 import time
 import sys
 import requests
-import requests_cache
 import yaml
 import os
 import math
@@ -18,8 +17,8 @@ import subprocess
 
 # Uncomment line below to emulate the matrix in a web browser. Make sure
 # You comment out the line importing rgbmatrix as well.
-from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 #from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
+from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions, graphics
 
 from PIL import Image, ImageFont, ImageDraw, ImageOps, ImageFilter
 
@@ -200,20 +199,25 @@ time.sleep(2)
 # Crypto Module
 def cryptoModule():
     # API Calls
-    
-    res = requests.get("https://api.coingecko.com/api/v3/coins/list")
-    if res.status_code == 200:
-        coinList = res.json()
-    else:
-        return {"error": "Non 200 Response Code"}
+    try:
+        res = requests.get("https://api.coingecko.com/api/v3/coins/list")
+        if res.status_code == 200:
+            coinList = res.json()
+        else:
+            return {"error": "Non 200 Response Code"}
+    except Exception as e:
+        return "internet_error"
 
     cryptoToFetch = CONFIG_CRYPTO_SYMBOLS
 
-    res = requests.get(f"https://api.coingecko.com/api/v3/simple/price?ids={','.join(cryptoToFetch)}&vs_currencies={CONFIG_CRYPTO_FIAT}&include_24hr_change=true&precision=18")
-    if res.status_code == 200:
-        prices = res.json()
-    else:
-        return {"error": "Non 200 Response Code"}
+    try:
+        res = requests.get(f"https://api.coingecko.com/api/v3/simple/price?ids={','.join(cryptoToFetch)}&vs_currencies={CONFIG_CRYPTO_FIAT}&include_24hr_change=true&precision=18")
+        if res.status_code == 200:
+            prices = res.json()
+        else:
+            return {"error": "Non 200 Response Code"}
+    except Exception as e:
+        return "internet_error"
     
     # Check if cryptoToFetch ids exist in coinList, and get put the symbol and name into a new dict
     idSymbolDict = {}
@@ -349,7 +353,15 @@ while True:
         else:
             if CONFIG_CRYPTO_ENABLED:
                 image = cryptoModule()
-                if type(image) != dict:
+                
+                if image == "internet_error" or image == {"error": "Non 200 Response Code"}:
+                    icon = Image.open(f"icons/boot/stale_data.png")
+                    icon.thumbnail((128,32))
+                    splash.paste(icon, (0,0))
+                    matrix.SetImage(splash.convert('RGB'))
+                    time.sleep(10)
+                
+                elif type(image) != dict:
                     renderQueue = []
                     for img in image:
                         renderQueue.append(img)

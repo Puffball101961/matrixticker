@@ -11,6 +11,10 @@ Features expected to come with (or soon after) this update include:
 - Web UI
 - And More!
 
+# Crypto API Information
+The Crypto Module utilises the CoinGecko API. Before using this module please review the latest CoinGecko API Terms of Service at https://www.coingecko.com/en/api_terms
+Ensure that you configure the ticker to not exceed the rate limits set by CoinGecko.
+
 ## Features planned
 - Stocks
 - Commodities
