@@ -22,9 +22,6 @@ if [ "$zone" != "" ]; then
     echo $zone | sudo tee /etc/timezone > /dev/null
     dpkg-reconfigure -f noninteractive tzdata >/dev/null 2>&1
     timedatectl set-timezone $zone
-    echo "[INFO] Timezone was set to $zone" >> "$logFile"   
-else
-    echo "[ERROR] Timezone is empty" >> "$logFile"
 fi
 
 echo "Fix Permissions of Home Folder"
